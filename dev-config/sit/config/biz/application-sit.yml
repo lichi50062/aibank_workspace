@@ -1,0 +1,195 @@
+spring:
+  jpa:
+    show-sql: true
+#  以下參數會自動在 DB 中建立 table, 建議只在本機使用
+#    properties:
+#      eclipselink.ddl-generation: create-or-extend-tables
+#      eclipselink.ddl-generation.output-mode: database
+  security:
+    oauth2:
+      client:
+        registration:
+          biz: 
+            client-id: biz
+            client-secret: bizsecret
+            authorization-grant-type: client_credentials
+            scope: biz
+            provider: biz
+        provider:
+          biz:
+            token-uri: http://localhost:9999/oauth2/token
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:9999/oauth2/jwks
+# hikari datasource 還有很多設定可以調，開發環境先這樣就夠了
+  datasource:
+    pib:
+      hikari:
+        driver-class-name: oracle.jdbc.OracleDriver
+        url: jdbc:oracle:thin:@172.16.241.39:5211:TEBK
+        username: DBuserNEB
+        password: 1qaz@WSX
+        maximum-pool-size: 2
+    aibank:
+      hikari:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://10.204.0.2:13306/NANO
+        username: nano
+        password: 1qaz@WSX
+        maximum-pool-size: 2
+
+# biz 不需要 session store
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  rabbitmq:
+    addresses: localhost:5772
+    address-shuffle-mode: none
+
+# feign client 專用的 properties
+  cloud:
+    openfeign:
+      hystrix:
+        enabled: false
+      client:
+        config:
+          default:
+            connectTimeout: 10000
+            readTimeout: 60000
+            loggerLevel: basic
+
+# 以下為管理需要之 endpoint
+management:
+  endpoint:
+    info:
+      enabled: true
+    env:
+      enabled: true
+    health:
+      enabled: true
+      show-details: ALWAYS
+      group:
+        readiness:
+          include: readinessState
+        liveness:
+          include: livenessState
+    prometheus:
+      enabled: true
+  health:
+    jms:
+      enabled: false
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - env
+          - metrics
+          - info
+          - health
+
+# 以下為 AIBANK 自訂參數
+aibank:
+  common:
+    api-base-uri: /api
+    cache:
+      redis:
+        host: localhost
+        port: 6379
+    feign:
+# feign client 各服務的 url, 開發環境需要指定
+      service-aibank-system-config-url: http://localhost:8081
+      service-aibank-credit-card-url: http://localhost:8083
+      service-aibank-security-url: http://localhost:8095
+      service-aibank-information-url: http://localhost:8096
+      
+# oauth server url
+    oauth2:
+      access-token-uri: http://localhost:9999/oauth2/token
+      client-id: biz
+      client-secret: bizsecret
+  biz:
+    swagger-ui:
+      enabled: true
+  batch:
+     host: http://192.168.32.189:7007/PCMS/ExecuteJob? #批次訪問路徑
+  crypto:
+    seckey:
+      providers:
+        com.ibm.tw.commons.util.crypto.SecretKeyProviderFactory: com.ibm.tw.ibmb.component.crypto.DummySecretKeyProvider
+        #com.ibm.tw.biz.b2c.uaa.persistence.dao.impl.CompanyDAO: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+        #com.ibm.tw.biz.b2c.uaa.persistence.dao.impl.UserDAO: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+        com.tfb.aibank.component.crypto.DBSecretKeyProvider: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+        com.fubon.tw.pib.persistence.b2c.entity.support.ReissueHouseLoanDataEntityListener: com.tfb.aibank.component.crypto.ReissueSecretKeyProvider
+  push:
+    resultQueue: receive.queue
+    concurrency: 10
+  log:
+    fields-to-hide: CARD_HOLD_ID
+# 以下為 EAI 設定
+
+eai:
+  client-system-id: AIBANK
+  channels:
+    InternetBank:
+      spName: AIBANK
+      loginId: MOBBANK
+      wsId: MOBBANK
+      tellerId: 2004011
+    CBS_IB:
+      spName: AIBANK
+      loginId: MOBBANK
+      wsId: MOBBANK
+      tellerId: 2004011
+    EB:
+      spName: AIBANK
+      loginId: MOBBANK
+      wsId: MOBBANK
+      tellerId: 2004033
+    CBS_EB:
+      spName: AIBANK
+      loginId: MOBBANK
+      wsId: MOBBANK
+      tellerId: 2004033
+    AS400:
+      spName: AIBANK
+      loginId: MOBBANK
+      wsId: MOBBANK
+      tellerId: 028WEB
+    MOBILE:
+      spName: AIBANK
+      loginId: MOBBANK
+      wsId: MOBBANK
+      tellerId: MOBBANK
+    eFamily:
+      spName: eFamily
+      loginId: eFamily
+      wsId: eFamily
+      tellerId: eFamily
+    ESB:
+      spName: AIBANK
+      loginId: MOBBANK
+      wsId: MOBBANK
+      tellerId: MOBBANK
+    CBS:
+      spName: AIBANK
+      loginId: MOBBANK
+      wsId: MOBBANK
+      tellerId: 2004012
+    IB_AS400:
+      spName: eBANK
+      loginId: EB_EBPWAS2
+      wsId: TBK_WEB001
+      tellerId: 028WEB
+  postURL: http://172.19.241.10:9201
+  #postURL: http://localhost:10080/HttpPost.ashx
+  max-conversation-times: 1000
+  check-integrity: false
+  connection-timeout: 30000
+  socket-timeout: 120000
+

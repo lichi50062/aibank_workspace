@@ -1,0 +1,62 @@
+server:
+  servlet:
+    session:
+      timeout: 10m
+
+spring:
+  session:
+    store-type: none
+      
+# 以下為管理需要之 endpoint
+management:
+  endpoint:
+    info:
+      enabled: true
+    env:
+      enabled: true
+    health:
+      enabled: true
+      show-details: ALWAYS
+      group:
+        readiness:
+          include: readinessState
+        liveness:
+          include: livenessState
+    prometheus:
+      enabled: true
+  health:
+    jms:
+      enabled: false
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - env
+          - metrics
+          - info
+          - health
+
+# 以下為 AIBANK 自訂參數
+aibank:
+  server:
+    gateway:
+      routes:
+        enabled: true
+        mapping:
+          ngn: http://localhost:7081
+          ncc: http://localhost:7082
+          nmf: http://localhost:7083
+          nnf: http://localhost:7084
+          npy: http://localhost:7085
+          nds: http://localhost:7086
+          nln: http://localhost:7087
+          nbo: http://localhost:7088
+          npo: http://localhost:7089
+          nps: http://localhost:7090
+          nst: http://localhost:7091
+          nca: http://localhost:7092

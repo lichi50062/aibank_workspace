@@ -1,0 +1,106 @@
+##################################################################
+#  Spring
+##################################################################
+spring:
+  jackson:
+    date-time-format: yyyy-MM-dd'T'HH:mm:ss.SSS
+    date-format: yyyy-MM-dd'T'HH:mm:ss.SSS
+    date-time: HH:mm:ss
+  session:
+    store-type: redis
+  redis:
+    max-retries: 5
+    retry-interval: 3000
+    jedis:
+      pool:
+        max-active: 50
+        max-idle: 10
+        min-idle: 10
+        max-wait: -1
+    timeout: 1000
+    host: ${REDIS_IP:127.0.0.1}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+  jpa:
+    open-in-view: false
+    show-sql: true
+    format-sql: true
+    eclipselink:
+      ddl-generation: none
+      ddl-generation.output-mode: sql-script
+      logging:
+        level: FINE
+        parameters: true
+  security:
+    oauth2:
+      oauth-enabled: false
+      client:
+        registration:
+          keycloak:
+            authorization-grant-type: client_credentials
+            client-id: tfb-b2e
+            client-secret: tfb-b2esecret
+        provider:
+          keycloak:
+            token-uri: http://127.0.0.1:9999/oauth/token
+      resourceserver:
+        jwt:
+          key-value: classpath:kv.pub
+        
+##################################################################
+#  DataSource
+##################################################################
+b2e: #(Master)
+  datasource:
+    continue-on-error: true
+    initializationFailTimeout: -1
+    driver-class-name: com.mysql.jdbc.Driver
+    jdbc-url: jdbc:mysql://localhost:3306/MSDB?useUnicode=yes&characterEncoding=UTF-8
+    username: user1
+    password: user1pw
+    sql-script-encoding: UTF-8
+    testWhileIdle: true
+    minimum-idle: 1
+    maximum-pool-size: 10
+    connection-timeout: 0
+    idle-timeout: 0
+    max-lifetime: 0
+    auto-commit: true
+    poolName: HikariPool-B2E
+    
+##################################################################
+#  Logging
+##################################################################
+logging:
+  level:
+    org.springframework: INFO
+    com.zaxxer.hikari: WARN
+  config: classpath:logback/logback-spring.xml
+
+##################################################################
+#  FeignClient
+# [elk-data-service-key] => ELK API Request key
+##################################################################
+
+
+aibank:
+  common:
+    api-base-uri: /api
+    api-key:
+      elk-data-service-key: ApiKey M2kyV0g0d0JrNl9vTFBYeWsySUc6c3BGZTd5R1dUWGk5YzFjZ3NHalBWQQ==
+    feign:
+      # feign client 各服務的 url, 開發環境需要指定
+      #      service-aibank-batch-url: http://localhost:9081
+      # 用以下設定可以進 SIT
+      # 在 hosts 中設定 10.11.2.40  gateway.tpebnknanot.cldatu1.groupt.fbt.com
+      service-aibank-batch-url: http://batch.tpebnknanot.cldatu1.groupt.fbt.com
+      service-aibank-system-config-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-system-config
+      #ELK API 測試環境網址=>「10.11.2.41」，本機開發會連不到，所以要藉由tunnel
+      elk-data-service-url: http://10.11.2.41:9200
+
+    # oauth server url
+    oauth2:
+      # 在 hosts 中設定 10.11.2.40  oauth.tpebnknanot.cldatu1.groupt.fbt.com
+      access-token-uri: http://oauth.tpebnknanot.cldatu1.groupt.fbt.com/oauth2/token
+      client-id: biz
+      client-secret: bizsecret

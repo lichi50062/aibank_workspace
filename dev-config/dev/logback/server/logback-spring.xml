@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration debug="true">
+
+	<appender name="STDOUT"
+		class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern><![CDATA[%date{HH:mm:ss.SSS} [T:%X{traceId:-} S:%X{spanId:-}] [%thread] %-5level %logger{15} %X{req.requestURI} %msg\n]]></pattern>
+		</encoder>
+	</appender>
+
+	<logger name="org.springframework.security" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="springfox" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="io.lettuce" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="io.netty" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<root>
+		<level value="DEBUG" />
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>

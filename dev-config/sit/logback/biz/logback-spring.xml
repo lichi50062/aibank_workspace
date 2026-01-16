@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+	<springProperty scope="context" name="appName" source="spring.application.name"/>
+	<property name="LOG_ROOT" value="/app/logs" />
+	<property name="PROJECT_NAME" value="aibank"/>
+	<appender name="STDOUT"
+		class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern><![CDATA[%date{HH:mm:ss.SSS} [T:%X{traceId:-} S:%X{spanId:-}] [%X{trackingid}] [%thread] %-5level %logger{15} %msg\n]]></pattern>
+		</encoder>
+	</appender>
+	<appender name="API_LOGGER"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_ROOT}/biz/api-${HOSTNAME}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_ROOT}/archives/biz/api-${HOSTNAME}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+			<!-- backup for 3 months -->
+			<maxHistory>90</maxHistory>
+		</rollingPolicy>
+		<encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+		    <providers>
+				<timestamp/>
+				<mdc/>
+		        <pattern>
+		            <pattern>
+		                {
+		                	"project.name":"${PROJECT_NAME}",
+		                	"project.application.name":"${appName}",
+		                	"tags":["public","api"],
+		                	"data": "#tryJson{%message}"
+		                }
+		            </pattern>
+		        </pattern>
+		    </providers>
+		</encoder>
+	</appender>
+	<appender name="ESB_TRACE_LOG"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_ROOT}/biz/trace-${HOSTNAME}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_ROOT}/archives/biz/trace-${HOSTNAME}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+			<!-- backup for 3 months -->
+			<maxHistory>90</maxHistory>
+		</rollingPolicy>
+		<encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+		    <providers>
+				<timestamp/>
+				<mdc/>
+		        <pattern>
+		            <pattern>
+		                {
+		                	"project.name":"${PROJECT_NAME}",
+		                	"project.application.name":"${appName}",
+		                	"tags":["public","trace"],
+		                	"data": "#tryJson{%message}"
+		                }
+		            </pattern>
+		        </pattern>
+		    </providers>
+		</encoder>
+	</appender>
+	<appender name="ESB_TRACE_DATA_LOG"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_ROOT}/biz/trace-data-${HOSTNAME}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_ROOT}/archives/biz/trace-data-${HOSTNAME}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+			<!-- backup for 3 months -->
+			<maxHistory>90</maxHistory>
+		</rollingPolicy>
+		<encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+		    <providers>
+				<timestamp/>
+				<mdc/>
+		        <pattern>
+		            <pattern>
+		                {
+		                	"project.name":"${PROJECT_NAME}",
+		                	"project.application.name":"${appName}",
+		                	"tags":["public","trace-data"],
+		                	"data": "#tryJson{%message}"
+		                }
+		            </pattern>
+		        </pattern>
+		    </providers>
+		</encoder>
+	</appender>
+	<appender name="BIZ_LOG_APPENDER"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_ROOT}/biz/${HOSTNAME}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_ROOT}/archives/biz/${HOSTNAME}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+			<!-- backup for 3 months -->
+			<maxHistory>90</maxHistory>
+		</rollingPolicy>
+		<encoder class="net.logstash.logback.encoder.LogstashEncoder">
+			<fieldNames>
+				<timestamp>timestamp</timestamp>
+				<stackTrace>exception</stackTrace>
+				<includeMdcKeyName>sessionid</includeMdcKeyName>
+				<includeMdcKeyName>channelid</includeMdcKeyName>
+				<includeMdcKeyName>trackingid</includeMdcKeyName>
+				<includeMdcKeyName>clientip</includeMdcKeyName>
+				<includeMdcKeyName>deviceid</includeMdcKeyName>
+				<includeMdcKeyName>custid</includeMdcKeyName>
+				<includeMdcKeyName>springinstanceid</includeMdcKeyName>
+				<includeMdcKeyName>pageid</includeMdcKeyName>
+				<includeMdcKeyName>locale</includeMdcKeyName>
+				<includeMdcKeyName>userid</includeMdcKeyName>
+				<includeMdcKeyName>httpMethod</includeMdcKeyName>
+				<includeMdcKeyName>requestURI</includeMdcKeyName>
+				<includeMdcKeyName>httpStatus</includeMdcKeyName>
+			</fieldNames>
+			<customFields>{"project.name":"${PROJECT_NAME}", "project.application.name":"${appName}","tags":["public","biz"]}</customFields>
+		</encoder>
+	</appender>
+	<logger name="ESB_TRACE_LOG" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="ESB_TRACE_LOG" />
+	</logger>
+	<logger name="ESB_TRACE_DATA_LOG" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="ESB_TRACE_DATA_LOG" />
+	</logger>
+	<logger name="API_LOGGER" level="DEBUG" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="API_LOGGER" />
+	</logger>
+	<logger name="org.apache.http" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="BIZ_LOG_APPENDER" />
+	</logger>
+	<logger name="org.springframework" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="BIZ_LOG_APPENDER" />
+	</logger>
+	<logger name="com.ibm.tw" level="DEBUG" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="BIZ_LOG_APPENDER" />
+	</logger>
+	<logger name="com.ctbc.esb" level="DEBUG" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="BIZ_LOG_APPENDER" />
+	</logger>
+	<logger name="springfox" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="BIZ_LOG_APPENDER" />
+	</logger>
+	<logger name="io.lettuce" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="BIZ_LOG_APPENDER" />
+	</logger>
+	<logger name="io.netty" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="BIZ_LOG_APPENDER" />
+	</logger>
+	<logger name="PERFORMANCE_LOGGER" level="DEBUG" additivity="false">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="BIZ_LOG_APPENDER" />
+	</logger>
+	<logger
+		name="org.springframework.jdbc.core.StatementCreatorUtils"
+		level="TRACE" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="org.springframework.jdbc.core.JdbcTemplate"
+		level="TRACE" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<root level="DEBUG">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="BIZ_LOG_APPENDER" />
+	</root>
+</configuration>

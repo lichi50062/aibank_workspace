@@ -1,0 +1,56 @@
+server:
+  servlet:
+    session:
+      timeout: 10m
+
+spring:
+  session:
+    store-type: none
+      
+# 以下為管理需要之 endpoint
+management:
+  endpoint:
+    info:
+      enabled: true
+    env:
+      enabled: true
+    health:
+      enabled: true
+      show-details: ALWAYS
+      group:
+        readiness:
+          include: readinessState
+        liveness:
+          include: livenessState
+    prometheus:
+      enabled: true
+  health:
+    jms:
+      enabled: false
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - env
+          - metrics
+          - info
+          - health
+
+# 以下為 AIBANK 自訂參數
+aibank:
+  server:
+    gateway:
+      routes:
+        service-default-port: 80
+        service-url-pattern: http://{0}
+        enabled: true
+        mapping:
+          system-config: localhost:8081
+          oauth-server: localhost:9999
+          ngn: localhost:7081
+      
