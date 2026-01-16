@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-cache-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-cache
+  template:
+    metadata:
+      labels:
+        app: redis-caches
+    spec:
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: kubernetes.io/hostname
+      #           operator: NotIn
+      #           values:
+      #           - tpebnkcldatu1w02t
+      containers:
+        - name: redis-cache
+          image: registry.groupt.fbt.com/tpebnknanot/infra/redis:7.4.3-alpine3.21
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/redis.conf
+              subPath: redis.conf
+          resources:
+            limits:
+              memory: 256Mi
+              cpu: 500m
+            requests:
+              memory: 128Mi
+              cpu: 50m
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cm-redis-config-cache

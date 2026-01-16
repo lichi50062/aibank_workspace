@@ -1,0 +1,227 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-admin-yml
+data:
+  gibgw.properties: |+
+    #GIB GW ENV PROPERTIES
+    gib.gw.svc.defaulturi=http://svc-admin-biz:8080/
+    gib.gw.session=B2eSession
+    gib.gw.service.area=B2E
+  application-sit.yml: |+
+    ##################################################################
+    #  Spring
+    ##################################################################
+    spring:
+      jackson:
+        date-time-format: yyyy-MM-dd'T'HH:mm:ss.SSS
+        date-format: yyyy-MM-dd'T'HH:mm:ss.SSS
+        date-time: HH:mm:ss
+      session:
+        store-type: redis
+      data:
+        redis:
+          host: svc-redis-server
+          port: 6379
+      jpa:
+        b2e:
+          open-in-view: false
+          show-sql: true
+          format-sql: true
+          eclipselink:
+            ddl-generation: none
+            ddl-generation.output-mode: sql-script
+            logging:
+              level: FINE
+              parameters: true
+        aibank:
+          open-in-view: false
+          show-sql: true
+          format-sql: true
+          eclipselink:
+            ddl-generation: none
+            ddl-generation.output-mode: sql-script
+            logging:
+              level: FINE
+              parameters: true
+        peoplesoft:
+          open-in-view: false
+          show-sql: true
+          format-sql: true
+          eclipselink:
+            ddl-generation: none
+            ddl-generation.output-mode: sql-script
+            logging:
+              level: FINE
+              parameters: true
+      security:
+        oauth2:
+          oauth-enabled: false
+          client:
+            registration:
+              keycloak:
+                authorization-grant-type: client_credentials
+                client-id: tfb-b2e
+                client-secret: tfb-b2esecret
+              biz: 
+                client-id: ${BIZ}
+                client-secret: ${BIZ_SECRET}
+                authorization-grant-type: client_credentials
+                scope: biz
+                provider: biz
+            provider:
+              keycloak:
+                token-uri: http://svc-oauth-server:9999/oauth2/token
+              biz:
+                token-uri: http://svc-oauth-server:9999/oauth2/token
+          resourceserver:
+            jwt:
+              jwk-set-uri: http://svc-oauth-server:9999/oauth2/jwks
+    # feign client 專用的 properties
+      cloud:
+        openfeign:
+          hystrix:
+            enabled: false
+          client:
+            config:
+              default:
+                connectTimeout: 10000
+                readTimeout: 60000
+                loggerLevel: basic
+    # 以下為管理需要之 endpoint
+    management:
+      endpoint:
+        info:
+          enabled: true
+        env:
+          enabled: true
+          keys-to-sanitize: password,secret
+          show-values: ALWAYS
+        health:
+          enabled: true
+          show-details: ALWAYS
+          group:
+            readiness:
+              include: readinessState
+            liveness:
+              include: livenessState
+        prometheus:
+          enabled: true
+      health:
+        jms:
+          enabled: false
+        readinessstate:
+          enabled: true
+        livenessstate:
+          enabled: true
+      endpoints:
+        web:
+          exposure:
+            include:
+              - prometheus
+              - env
+              - metrics
+              - info
+              - health
+    ##################################################################
+    #  DataSource
+    ##################################################################
+    datasource:
+      b2e: #(Master)
+        continue-on-error: true
+        initializationFailTimeout: -1
+        driver-class-name: oracle.jdbc.OracleDriver
+        jdbc-url: jdbc:oracle:thin:@172.16.241.39:5211:TEBK
+        username: DBuserNEB
+        password: ${PIB_DB_PASS}
+        sql-script-encoding: UTF-8
+        testWhileIdle: true
+        minimum-idle: 2
+        maximum-pool-size: 5
+        connection-timeout: 10000
+        idle-timeout: 60000
+        max-lifetime: 180000
+        keepalive-time: 30000
+        auto-commit: true
+        poolName: HikariPool-B2E
+        data-source-properties:
+          oracle.jdbc.defaultConnectionValidation: LOCAL
+          oracle.jdbc.implicitStatementCacheSize: 20
+      aibank: #(aibank-mysql)
+        continue-on-error: true
+        initializationFailTimeout: -1
+        driver-class-name: com.mysql.jdbc.Driver
+        jdbc-url: jdbc:mysql:loadbalance://10.11.4.228:6033,10.11.4.229:6033/aibank_dev?useSSL=false
+        username: AIBnkUser
+        password: ${AIB_DB_PASS}
+        sql-script-encoding: UTF-8
+        testWhileIdle: true
+        minimum-idle: 2
+        maximum-pool-size: 5
+        connection-timeout: 10000
+        idle-timeout: 60000
+        max-lifetime: 180000
+        keepalive-time: 30000
+        auto-commit: true
+        poolName: HikariPool-Aibank
+      peoplesoft: #(peoplesoft)
+        continue-on-error: false
+        initializationFailTimeout: -1
+        driver-class-name: oracle.jdbc.OracleDriver
+        jdbc-url: jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = 172.17.241.217)(PORT=5211))(ADDRESS = (PROTOCOL = TCP)(HOST = 172.19.243.30)(PORT=5211))(LOAD_BALANCE = yes))(CONNECT_DATA =(SERVER = DEDICATED)(SERVICE_NAME  = TWMSC)(FAILOVER_MODE =(TYPE = SELECT)(METHOD = BASIC)(RETRIES =180)(DELAY = 5))))
+        username: PEOPSOFT
+        password: ${PEOPLESOFT_DB_PASS}
+        sql-script-encoding: UTF-8
+        testWhileIdle: true
+        maximum-pool-size: 5
+        minimum-idle: 2
+        connection-timeout: 10000
+        idle-timeout: 60000
+        max-lifetime: 180000
+        keepalive-time: 30000
+        auto-commit: true
+        poolName: HikariPool-Peoplesoft
+        data-source-properties:
+          oracle.jdbc.defaultConnectionValidation: LOCAL
+          oracle.jdbc.implicitStatementCacheSize: 20
+    ##################################################################
+    #  Logging
+    ##################################################################
+    logging:
+      level:
+        org.springframework: INFO
+        com.zaxxer.hikari: WARN
+
+    aibank:
+      common:
+        feign-header-version: 1.0.0-
+        api-base-uri: /api
+        api-key:
+          elk-data-service-key: ApiKey M2kyV0g0d0JrNl9vTFBYeWsySUc6c3BGZTd5R1dUWGk5YzFjZ3NHalBWQQ==
+        feign:
+    # feign client 各服務的 url, 開發環境需要指定
+    #      service-aibank-batch-url: http://localhost:9081
+    # 用以下設定可以進 SIT
+    # 在 hosts 中設定 10.11.2.40  gateway.tpebnknanot.cldatu1.groupt.fbt.com
+          service-aibank-batch-url: http://svc-batch:8080
+          service-aibank-system-config-url: http://svc-biz-system-config:8080
+          service-aibank-security-url: http://svc-biz-security:8080
+          service-aibank-notification-url: http://svc-biz-notification:8080
+          service-aibank-information-url: http://svc-biz-information:8080
+          service-aibank-user-url: http://svc-biz-user:8080
+    #ELK API 測試環境網址=>「10.11.2.41」，本機開發會連不到，所以要藉由tunnel
+          elk-data-service-url: https://10.11.2.41:9200
+
+
+    # oauth server url
+        oauth2:
+    # 在 hosts 中設定 10.11.2.40  oauth.tpebnknanot.cldatu1.groupt.fbt.com
+          access-token-uri: http://svc-oauth-server:9999/oauth2/token
+          client-id: ${BIZ}
+          client-secret: ${BIZ_SECRET}
+      crypto:
+        seckey:
+          providers:
+            com.ibm.tw.gib.biz.util.crypt.SecretKeyProviderFactory: com.ibm.tw.gib.biz.util.crypt.DummySecretKeyProvider
+            com.ibm.tw.gib.biz.util.crypt.DBSecretKeyProvider: com.ibm.tw.gib.biz.util.crypt.DBSecretKeyProvider
+        

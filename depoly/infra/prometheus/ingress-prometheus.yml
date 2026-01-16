@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ing-prometheus
+spec:
+  rules:
+  - host: prometheus.tpebnknanot.cldatu1.groupt.fbt.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus
+            port:
+              number: 8080

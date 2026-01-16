@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-log-archiver-sh
+data:
+  archive-logs.sh: |+
+    #!/bin/sh -x
+    cd /app/logs
+    for d in access admin batch biz chl nginx rabbitmq server/gateway-server server/oauth
+    do
+      for f in $(find $d -name '*.log' -mtime +3)
+      do
+        fd=$(date "+%Y-%m-%d" -d @$(stat -c "%Y" $f))
+        gzip -9 $f
+        mv -v /app/logs/$f.gz /app/logs/archives/${f}-${fd}.gz
+      done
+    done
+    # 暫時無法在 deploy-log-archive-cron 做 multiple command 暫時合併 
+    # 定時清理 ESMBT024批次 BAK 檔案 
+    cd /static-content
+    for d in ESMBT024 ESMBT024/BAK
+    do
+      for f in $(find $d \( -name '*.json' -o -name '*ok' \) -mtime +5)
+      do
+        rm $f
+        echo "clean file done, filename:"  $f 
+      done
+    done
+  compress-logs-hourly.sh: |+
+    #!/bin/sh -x
+    cd /app/logs/archives
+    for f in $(find . -name '*.log')
+    do
+      gzip -9 $f
+    done

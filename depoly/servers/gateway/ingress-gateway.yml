@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ing-gateway-server
+spec:
+  rules:
+  - host: gateway.tpebnknanot.cldatu1.groupt.fbt.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: svc-gateway-server
+            port:
+              number: 8763
+

@@ -1,0 +1,223 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-fluent-bit-all
+data:
+  fluent-bit-config-all.conf: |+
+    [SERVICE]
+        Flush        10
+        Daemon       Off
+        Log_Level    warn
+        Log_File     /app/logs/fluent-bit/${POD_NAME}.log
+        Parsers_file parsers.conf
+        HTTP_Server  On
+        HTTP_Listen  0.0.0.0
+        HTTP_PORT    2021
+
+    [INPUT]
+        Name         tail
+        Alias        admin-log   
+        Path         /app/logs/admin/admin-*.log
+        Tag          admin_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/admin.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        batch-log
+        Path         /app/logs/batch/batch-*.log
+        Tag          batch_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/batch.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        api-biz-log
+        Path         /app/logs/biz/api-biz-*.log
+        Tag          api_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/api-biz.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        biz-log
+        Path         /app/logs/biz/biz-*.log
+        Tag          biz_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/biz.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        trace-biz-log
+        Path         /app/logs/biz/trace-biz-*.log
+        Tag          trace_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/trace-biz.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        trace-data-log
+        Path         /app/logs/biz/trace-data-*.log
+        Tag          trace_data_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/trace-data.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        b2c-access-log
+        Path         /app/logs/access/b2cAccessLog-*.log
+        Tag          b2c_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/b2cAccessLog.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        chl-log
+        Path         /app/logs/chl/chl-*.log
+        Tag          chl_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/chl.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        gateway-server-log
+        Path         /app/logs/server/gateway-server/gateway-server-*.log
+        Tag          gateway_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/gateway-server.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        oauth-server-log
+        Path         /app/logs/server/oauth/oauth-server-*.log
+        Tag          oauth_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/oauth-server.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        ixtein-push-log
+        Path         /app/ixtein/push/ixtein-push-*.log
+        Tag          push_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/ixtein-push.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [INPUT]
+        Name         tail
+        Alias        ixtein-deployment-log
+        Path         /app/ixtein/ixtein/ixtein-deployment-*.log
+        Tag          ixtein_json_logs
+        Buffer_Chunk_Size   128k
+        Buffer_Max_Size     10MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+        Refresh_Interval    5
+        Rotate_Wait         300
+        Mem_Buf_Limit       10MB
+        DB          /app/logs/fluent-bit/ixtein-deployment.db
+        Ignore_Older        7d
+        Threaded            true
+
+    [FILTER]
+        Name         parser
+        Match        *_json_logs
+        Key_Name     log
+        Parser       json
+
+    [OUTPUT]
+        Name          http
+        Match         *
+        Host          logstash-center.cldatu.groupt.fbt.com
+        uri           /public-app-log
+        Port          443
+        Format        json
+        tls           On
+        tls.verify    Off
+
+

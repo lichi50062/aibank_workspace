@@ -1,0 +1,20 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: chl-%appname%-virtual-service
+spec:
+  hosts:
+  - "svc-chl-%appname%"
+  http:
+  - match:
+    - headers:
+        X-App-Version:
+          prefix: "sit2"
+    route:
+    - destination:
+        host: svc-chl-%appname%
+        subset: v2
+  - route:
+    - destination:
+        host: svc-chl-%appname%
+        subset: v1

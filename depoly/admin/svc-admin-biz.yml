@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-admin-biz
+spec:
+  selector:
+    app: admin-biz
+  ports:
+    - name: http-admin-biz-8080
+      port: 8080
+      protocol: TCP
+      targetPort: 8080

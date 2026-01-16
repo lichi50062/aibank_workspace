@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-gateway-yml
+data:
+  application-sit.yml: |+
+    server:
+      servlet:
+        session:
+          timeout: 10m
+    
+    spring:
+      session:
+        store-type: none
+          
+    management:
+      endpoint:
+        info:
+          enabled: true
+        env:
+          enabled: true
+        health:
+          enabled: true
+          show-details: ALWAYS
+          group:
+            readiness:
+              include: readinessState
+            liveness:
+              include: livenessState
+        prometheus:
+          enabled: true
+      health:
+        jms:
+          enabled: false
+        readinessstate:
+          enabled: true
+        livenessstate:
+          enabled: true
+      endpoints:
+        web:
+          exposure:
+            include:
+              - prometheus
+              - env
+              - metrics
+              - info
+              - health
+    
+    aibank:
+      server:
+        gateway:
+          routes:
+            service-default-port: 8080
+            service-url-pattern: "http://{0}:8080"
+            enabled: true
+            mapping:
+              system-config: svc-biz-system-config:8080
+              oauth-server: svc-oauth-server:9999
+              ncc: svc-chl-creditcard:8080
+              nds: svc-chl-deposit:8080
+              nst: svc-chl-system:8080
+              ngn: svc-chl-general:8080
+              npy: svc-chl-payment:8080
+              nmf: svc-chl-fund:8080
+              nnf: svc-chl-invest:8080
+              nln: svc-chl-loan:8080
+              nbo: svc-chl-overview:8080
+              npo: svc-chl-point:8080
+              nps: svc-chl-preferences:8080
+              nca: svc-chl-creditcardactivities:8080
+              nwt: svc-chl-wallet:8080

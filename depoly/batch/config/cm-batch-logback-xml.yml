@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-batch-logback-xml
+data:
+  logback-spring.xml: |+
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <configuration debug="true">
+    	<springProperty scope="context" name="appName" source="spring.application.name"/>
+    	<property name="LOG_ROOT" value="/app/logs" />
+    	<property name="PROJECT_NAME" value="aibank"/>
+    	<appender name="STDOUT"
+    		class="ch.qos.logback.core.ConsoleAppender">
+    		<encoder>
+    			<pattern><![CDATA[%date{HH:mm:ss.SSS} [T:%X{traceId:-} S:%X{spanId:-}] [%X{trackingid}] [%thread] %-5level %logger{15} %msg\n]]></pattern>
+    		</encoder>
+    	</appender>
+    	<appender name="BATCH_LOG_APPENDER"
+    		class="ch.qos.logback.core.rolling.RollingFileAppender">
+    		<file>${LOG_ROOT}/batch/${POD_NAME}.log</file>
+    		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+    			<fileNamePattern>${LOG_ROOT}/archives/batch/${POD_NAME}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+    			<maxHistory>90</maxHistory>
+    		</rollingPolicy>
+    		<encoder class="net.logstash.logback.encoder.LogstashEncoder">
+    			<fieldNames>
+    				<timestamp>@timestamp</timestamp>
+    				<stackTrace>exception</stackTrace>
+    			</fieldNames>
+    			<customFields>{"podName":"${POD_NAME}", "project.name":"${PROJECT_NAME}", "project.application.name":"${appName}","project.country":"tw","project.logtype":"batch","tags":["public","batch","SIT"]}</customFields>
+    		</encoder>
+    	</appender>
+    	<logger name="org.apache.http" level="INFO" additivity="false">
+    		<appender-ref ref="STDOUT" />
+    		<appender-ref ref="BATCH_LOG_APPENDER" />
+    	</logger>
+    	<logger name="org.springframework" level="INFO" additivity="false">
+    		<appender-ref ref="STDOUT" />
+    		<appender-ref ref="BATCH_LOG_APPENDER" />
+    	</logger>
+    	<logger name="com.ibm.tw" level="DEBUG" additivity="false">
+    		<appender-ref ref="STDOUT" />
+    		<appender-ref ref="BATCH_LOG_APPENDER" />
+    	</logger>
+    	<logger name="springfox" level="INFO" additivity="false">
+    		<appender-ref ref="STDOUT" />
+    		<appender-ref ref="BATCH_LOG_APPENDER" />
+    	</logger>
+    	<logger name="io.lettuce" level="INFO" additivity="false">
+    		<appender-ref ref="STDOUT" />
+    		<appender-ref ref="BATCH_LOG_APPENDER" />
+    	</logger>
+    	<logger name="io.netty" level="INFO" additivity="false">
+    		<appender-ref ref="STDOUT" />
+    		<appender-ref ref="BATCH_LOG_APPENDER" />
+    	</logger>
+    	<logger name="PERFORMANCE_LOGGER" level="DEBUG" additivity="false">
+    		<appender-ref ref="STDOUT" />
+    		<appender-ref ref="BATCH_LOG_APPENDER" />
+    	</logger>
+    	<logger name="net.ttddyy"
+    		level="INFO" additivity="false">
+    		<appender-ref ref="STDOUT" />
+    	</logger>
+      <logger name="com.zaxxer.hikari.pool.ProxyLeakTask" level="DEBUG" additivity="false">
+        <appender-ref ref="STDOUT" />
+      </logger>
+    	<root level="DEBUG" >
+    		<appender-ref ref="BATCH_LOG_APPENDER" />
+    	</root>
+    </configuration>

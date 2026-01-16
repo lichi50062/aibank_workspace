@@ -1,0 +1,183 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: biz-%appname%-deployment-%appVer%
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: biz-%appname%
+      version: %appVer%
+  template:
+    metadata:
+      annotations:
+        io.prometheus/path: /actuator/prometheus
+        io.prometheus/port: "8080"
+        io.prometheus/scrape: "true"
+        sidecar.istio.io/proxyCPULimit: "1000m"
+        sidecar.istio.io/proxyMemoryLimit: "1024Mi"
+        sidecar.istio.io/proxyCPU: "50m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+        oneagent.dynatrace.com/inject: "false"
+      labels:
+        app: biz-%appname%
+        version: %appVer%
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: NotIn
+                values:
+                - tpebnkcldatu1w07t
+      hostAliases:
+      - ip: "10.11.2.71"
+        hostnames:
+        - "cloudtest.taipeifubon.com.tw"
+        - "eauthtest.taipeifubon.com.tw"
+      - ip: "10.11.3.48"
+        hostnames:
+        - "applytest.groupt.fbt.com"
+        - "publicinfo-gateway.cloudt.groupt.fbt.com"
+      - ip: "10.11.2.49"
+        hostnames:
+        - "gw.dmipt"
+      - ip: "10.11.2.40"
+        hostnames:
+        - "paytools.service.cldt.groupt.fbt.com"
+        - "api-receiver.com"
+        - "ebankcldtest.anthos.groupt.fbt.com"
+        - "cardpromotetest.taipeifubon.com.tw"
+      - ip: "172.16.247.28"
+        hostnames:
+        - "ebanktest.taipeifubon.com.tw"
+      - ip: "10.81.50.15"
+        hostnames:
+        - "openapi.fbs.com.tw"
+      - ip: "172.19.243.91"
+        hostnames:
+        - "wbinst.taipeifubon.com.tw"
+      - ip: "172.16.247.93"
+        hostnames:
+        - "nmplusinvestmenttest.taipeifubon.com.tw"
+      - ip: "60.248.149.80"
+        hostnames:
+        - "www.focas-test.fisc.com.tw"  
+      containers:
+        - name: biz-%appname%
+          image: registry.groupt.fbt.com/tpebnknanot/business/%projname%
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/resources/application-sit.yml
+              subPath: application-sit.yml
+            - name: logback-volume
+              mountPath: /app/resources/logback-spring.xml
+              subPath: logback-spring.xml
+            - name: log-pvc
+              mountPath: /app/logs
+            - name: pvc-static-assets
+              mountPath: /static-content
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: POD_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: JAVA_OPTS
+              value: "-XX:MaxRAMPercentage=50"
+            - name: PIB_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: pib-db-pass
+                  key: password
+            - name: AIB_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: aib-db-pass
+                  key: password
+            - name: PIB_LOG_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: pib-log-db-pass
+                  key: password
+            - name: CARD_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: card-event-db-pass
+                  key: password
+            - name: PEOPLESOFT_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: peoplesoft-db-pass
+                  key: password
+            - name: CACHEDB2_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: cachedb2-db-pass
+                  key: password
+            - name: FBOTW_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: fbotw-db-pass
+                  key: password
+            - name: BIZ
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: client-id
+            - name: BIZ_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: client-secret
+          resources:
+            limits:
+              memory: 612Mi
+              cpu: 500m
+            requests:
+              memory: 128Mi
+              cpu: 50m
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cm-biz-yml
+        - name: logback-volume
+          configMap:
+            name: cm-biz-logback-xml
+        - name: log-pvc
+          persistentVolumeClaim:
+            claimName: log-pvc
+        - name: pvc-static-assets
+          persistentVolumeClaim:
+            claimName: pvc-static-assets

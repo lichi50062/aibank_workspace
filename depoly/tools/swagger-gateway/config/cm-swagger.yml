@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-swagger-yml
+data:
+  application-sit.yml: |+
+    springdoc:
+      paths-to-exclude: /base/version,/echo/*
+      grouping:
+        refreshTimeoutMs: 3600000  #default value 5000
+        modules:
+          module1:
+            description: system-config
+            url: http://svc-biz-system-config:8080/v3/api-docs.yaml
+          module2:
+            description: notification
+            url: http://svc-biz-notification:8080/v3/api-docs.yaml
+          module3:
+            description: credit-card
+            url: http://svc-biz-credit-card:8080/v3/api-docs.yaml
+          module4:
+            description: mutual-fund
+            url: http://svc-biz-mutual-fund:8080/v3/api-docs.yaml
+          module5:
+            description: deposit
+            url: http://svc-biz-deposit:8080/v3/api-docs.yaml
+          module6:
+            description: payment
+            url: http://svc-biz-payment:8080/v3/api-docs.yaml
+          module7:
+            description: user
+            url: http://svc-biz-user:8080/v3/api-docs.yaml
+          module8:
+            description: security
+            url: http://svc-biz-security:8080/v3/api-docs.yaml
+          module9:
+            description: information
+            url: http://svc-biz-information:8080/v3/api-docs.yaml
+          module10:
+            description: loan
+            url: http://svc-biz-loan:8080/v3/api-docs.yaml
+          module11:
+            description: insurance
+            url: http://svc-biz-insurance:8080/v3/api-docs.yaml
+          module12:
+            description: foreign-exchange
+            url: http://svc-biz-foreign-exchange:8080/v3/api-docs.yaml
+          module13:
+            description: transfer
+            url: http://svc-biz-transfer:8080/v3/api-docs.yaml
+          module14:
+            description: preferences
+            url: http://svc-biz-preferences:8080/v3/api-docs.yaml
+    logger:
+      level:
+        com.beyt.doc.aggregator: DEBUG

@@ -1,0 +1,20 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: biz-%appname%-virtual-service
+spec:
+  hosts:
+  - "svc-biz-%appname%"
+  http:
+  - match:
+    - headers:
+        x-aibank-appVersion:
+          prefix: "sit2"
+    route:
+    - destination:
+        host: svc-biz-%appname%
+        subset: v2
+  - route:
+    - destination:
+        host: svc-biz-%appname%
+        subset: v1

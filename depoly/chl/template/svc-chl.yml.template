@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-chl-%appname%
+spec:
+  selector:
+    app: chl-%appname%
+  ports:
+    - name: http-chl-%appname%-8080
+      port: 8080
+      protocol: TCP
+      targetPort: 8080

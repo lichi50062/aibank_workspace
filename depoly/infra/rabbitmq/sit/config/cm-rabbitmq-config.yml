@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-rabbit-config
+data:
+  load-defs.conf: |+
+    loopback_users.guest = false
+    management.load_definitions = /etc/rabbitmq/rabbitmq-defs.json
+  enabled_plugins: |+
+    [rabbitmq_management,rabbitmq_prometheus,rabbitmq_federation,rabbitmq_federation_management].
+  rabbitmq-defs.json: |+
+    {
+      "users": [
+         { "name": "guest", "password_hash": "VgywM689nBjoyhKNuBNUNxOJbIsSaL+qo4K3SsAFjMbF/AYy", "hashing_algorithm": "rabbit_password_hashing_sha256", "tags": [ "administrator" ], "limits": {} }
+      ],
+      "vhosts": [
+        { "name": "/" }
+      ],
+      "permissions": [
+        { "user": "guest", "vhost": "/", "configure": ".*", "write": ".*", "read": ".*" }
+      ],
+      "queues": [
+        {
+          "name": "push.queue",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-max-priority": 10
+          }
+        },
+        {
+          "name": "receive.queue",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "push.queue.sit2",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {
+            "x-max-priority": 10
+          }
+        },
+        {
+          "name": "receive.queue.sit2",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "receive.mbank.queue",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        }
+      ]
+    }
+  rabbitmq-defs-fed.json: |+
+    {
+      "users": [
+         { "name": "guest", "password_hash": "VgywM689nBjoyhKNuBNUNxOJbIsSaL+qo4K3SsAFjMbF/AYy", "hashing_algorithm": "rabbit_password_hashing_sha256", "tags": [ "administrator" ], "limits": {} }
+      ],
+      "vhosts": [
+        { "name": "/" }
+      ],
+      "permissions": [
+        { "user": "guest", "vhost": "/", "configure": ".*", "write": ".*", "read": ".*" }
+      ],
+      "parameters": [
+        {
+          "value": {
+            "uri": "amqp://guest:guest@rabbitmq-0.rabbitmq-public:5672"
+          },
+          "vhost": "/",
+          "component": "federation-upstream",
+          "name": "origin"
+        },
+        {
+          "value": {
+            "uri": "amqp://guest:guest@rabbitmq-1.rabbitmq-public:5672"
+          },
+          "vhost": "/",
+          "component": "federation-upstream",
+          "name": "origin-back"
+        }
+      ],
+      "policies":[
+          {
+            "apply-to":"queues",
+            "definition":{
+                "federation-upstream-set":"all"
+            },
+            "name":"queue-federation",
+            "pattern":"^receive\\.",
+            "priority":10,
+            "vhost":"/"
+          }
+      ],
+      "queues": [
+        {
+          "name": "receive.queue",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "receive.mbank.queue",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "receive.queue.sit2",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "receive.mbank.queue.sit2",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "email.queue",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "billhunter.queue",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "sms.queue",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "email.queue.sit2",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "billhunter.queue.sit2",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "sms.queue.sit2",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "expense-notify.queue",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        },
+        {
+          "name": "expense-notify.queue.sit2",
+          "vhost": "/",
+          "durable": true,
+          "auto_delete": false,
+          "arguments": {}
+        }
+      ]
+    }

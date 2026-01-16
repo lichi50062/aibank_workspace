@@ -1,0 +1,181 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-ixtein-push-config
+data:
+  application-sit.yml: |+
+    spring:
+      jmx:
+        default-domain: push-server
+      jpa:
+        properties:
+          eclipselink:
+            logging: 
+              level: FINE
+      datasource :
+        url: jdbc:oracle:thin:@//172.16.244.249:5211/TNEBK
+        driverClassName: oracle.jdbc.OracleDriver
+        username: IXTEINSIT
+        password: ${DATASOURCE_PASSWORD}      
+        testWhileIdle: true
+        minimum-idle: 2
+        maximum-pool-size: 5
+        connection-timeout: 10000
+        idle-timeout: 60000
+        max-lifetime: 180000
+        keepalive-time: 30000
+        data-source-properties:
+          oracle.jdbc.defaultConnectionValidation: LOCAL
+          oracle.jdbc.implicitStatementCacheSize: 20
+      artemis:
+        mode: embedded
+        embedded:
+          enabled: ${push.persistence}
+          queues: 
+            - push.queue
+            - receive.queue
+      rabbitmq:
+        addresses: rabbitmq-0.rabbitmq-public:5672, rabbitmq-1.rabbitmq-public:5672, rabbitmq-private-0.rabbitmq-private:5672, rabbitmq-private-1.rabbitmq-private:5672
+        address-shuffle-mode: none
+    management:
+      endpoint:
+        info:
+          enabled: true
+        env:
+          enabled: true
+        health:
+          enabled: true
+          show-details: ALWAYS
+          group:
+            readiness:
+              include: readinessState
+            liveness:
+              include: livenessState
+        prometheus:
+          enabled: true
+      health:
+        jms:
+          enabled: false
+        readinessstate:
+          enabled: true
+        livenessstate:
+          enabled: true
+      endpoints:
+        web:
+          exposure:
+            include:
+              - prometheus
+              - env
+              - metrics
+              - info
+              - health
+    jasypt:
+      encryptor:
+        privateKeyFormat: PEM
+        privateKeyString: ${JASYPT_PRIVATE_KEY}
+    ############################################
+    #  Push settings
+    ############################################      
+    push:
+      concurrency: 50
+      dry-run: false
+      persistence: false
+      pushQueue: push.queue
+      receiveQueue: receive.queue
+
+  logback-spring.xml: |+
+    <?xml version="1.0" encoding="UTF-8" ?>
+    <configuration debug="true">
+      <springProperty scope="context" name="appName" source="spring.application.name"/>
+      <property name="LOG_ROOT" value="/app/logs" />
+      <property name="PROJECT_NAME" value="aibank"/>
+      <appender name="STDOUT"
+        class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+          <pattern><![CDATA[%date{HH:mm:ss.SSS} [T:%X{traceId:-} S:%X{spanId:-}] [%thread] %-5level %logger{15} [%X{rowId}] %msg\n]]></pattern>
+        </encoder>
+      </appender>
+      <appender name="LOG_APPENDER"
+        class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_ROOT}/push/${POD_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+          <fileNamePattern>${LOG_ROOT}/archives/push/${POD_NAME}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+          <!-- backup for 3 months -->
+          <maxHistory>90</maxHistory>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+          <fieldNames>
+            <timestamp>@timestamp</timestamp>
+            <stackTrace>exception</stackTrace>
+            <includeMdcKeyName>traceId</includeMdcKeyName>
+            <includeMdcKeyName>spanId</includeMdcKeyName>
+            <includeMdcKeyName>rowId</includeMdcKeyName>
+          </fieldNames>
+          <customFields>{"podName":"${POD_NAME}", "project.name":"${PROJECT_NAME}", "project.application.name":"${appName}","project.country":"tw","project.logtype":"push","tags":["public","push","SIT"]}</customFields>
+        </encoder>
+      </appender>
+
+      <logger name="org.springframework.security" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOG_APPENDER"/>
+      </logger>
+      <logger name="springfox" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOG_APPENDER"/>
+      </logger>
+      <logger name="io.lettuce" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOG_APPENDER"/>
+      </logger>
+      <logger name="io.netty" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOG_APPENDER"/>
+      </logger>
+      <logger name="com.google" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOG_APPENDER"/>
+      </logger>
+    	<logger name="net.ttddyy"
+    		level="INFO" additivity="false">
+    		<appender-ref ref="STDOUT" />
+    		<appender-ref ref="BIZ_LOG_APPENDER" />
+    	</logger>
+      <root>
+        <level value="INFO" />
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="LOG_APPENDER"/>
+      </root>
+    </configuration>
+
+  fluent-bit-config-push.conf: |+
+    [SERVICE]
+        Flush        1
+        Daemon       Off
+        Log_Level    trace
+        Parsers_file parsers.conf
+
+    [INPUT]
+        Name         tail
+        Path         /app/logs/push/${POD_NAME}.log
+        Tag          push_json_logs
+        Buffer_Chunk_Size   100k
+        Buffer_Max_Size     5MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+
+    [FILTER]
+        Name         parser
+        Match        *_json_logs
+        Key_Name     log
+        Parser       json
+
+    [OUTPUT]
+        Name          http
+        Match         *
+        Host          logstash-center.cldatu.groupt.fbt.com
+        uri           /public-app-log
+        Port          443
+        Format        json
+        tls           On
+        tls.verify    Off
+

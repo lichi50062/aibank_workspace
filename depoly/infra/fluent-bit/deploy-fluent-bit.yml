@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fluent-bit
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: fluent-bit
+  template:
+    metadata:
+      annotations:
+        io.prometheus/path: /api/v2/metrics/prometheus
+        io.prometheus/port: "2021"
+        io.prometheus/scrape: "true"
+        sidecar.istio.io/inject: "false"
+      labels:
+        app: fluent-bit
+    spec:
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: kubernetes.io/hostname
+      #           operator: NotIn
+      #           values:
+      #           - tpebnkcldatu1w02t
+      containers:
+        - name: fluent-bit
+          image: registry.groupt.fbt.com/tpebnknanot/infra/fluent-bit:3.2.8-1-rocky-9-minimal
+          volumeMounts:
+          - name: config-fluent-bit-all
+            mountPath: /fluent-bit/etc/fluent-bit.conf
+            subPath: fluent-bit-config-all.conf
+          - name: log-pvc
+            mountPath: /app/logs
+          - name: pvc-ixtein
+            mountPath: /app/ixtein
+          env:
+            - name: POD_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          resources:
+            limits:
+              memory: 4096Mi
+              cpu: 500m
+            requests:
+              memory: 128Mi
+              cpu: 50m
+      volumes:
+        - name: config-fluent-bit-all
+          configMap:
+            name: cm-fluent-bit-all
+        - name: log-pvc
+          persistentVolumeClaim:
+            claimName: log-pvc
+        - name: pvc-ixtein
+          persistentVolumeClaim:
+            claimName: pvc-ixtein

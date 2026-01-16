@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: log-archiver
+spec:
+  schedule: "10 3 * * *"
+  timeZone: "Asia/Taipei"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            sidecar.istio.io/inject: "false"
+            oneagent.dynatrace.com/inject: "false"
+          labels:
+            cronjob: log-archiver
+        spec:
+          containers:
+          - name: log-archiver
+            image: registry.groupt.fbt.com/library/busybox:1.32.0
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -x
+            - /archive-logs.sh
+            env:
+              - name: TZ
+                value: Asia/Taipei
+            volumeMounts:
+              - name: scripts-volume
+                mountPath: archive-logs.sh
+                subPath: archive-logs.sh
+              - name: log-pvc
+                mountPath: /app/logs
+              - name: pvc-static-assets
+                mountPath: /static-content
+            resources:
+              limits:
+                memory: 1024Mi
+                cpu: 1000m
+              requests:
+                memory: 128Mi
+                cpu: 50m
+          restartPolicy: OnFailure
+          volumes:
+            - name: scripts-volume
+              configMap:
+                name: cm-log-archiver-sh
+            - name: log-pvc
+              persistentVolumeClaim:
+                claimName: log-pvc
+            - name: pvc-static-assets
+              persistentVolumeClaim:
+                claimName: pvc-static-assets

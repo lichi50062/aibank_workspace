@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-quartz-properties
+data:
+  quartz.properties: |+
+    org.quartz.scheduler.instanceName=AIBankBatchScheduler
+    org.quartz.scheduler.instanceId=AUTO
+    org.quartz.scheduler.skipUpdateCheck=true
+    org.quartz.scheduler.jmx.export=true
+    org.quartz.scheduler.jmx.objectName=org.quartz.scheduler:type=QuartzScheduler,name=quartzScheduler
+    org.quartz.threadPool.class=org.quartz.simpl.SimpleThreadPool
+    org.quartz.threadPool.threadCount=3
+    org.quartz.threadPool.threadPriority=5
+    org.quartz.jobStore.misfireThreshold=60000
+    org.quartz.jobStore.class=org.springframework.scheduling.quartz.LocalDataSourceJobStore
+    org.quartz.jobStore.driverDelegateClass=org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+    org.quartz.jobStore.tablePrefix=BIZ_QRTZ_
+    org.quartz.jobStore.useProperties=false
+    org.quartz.jobStore.isClustered=true
+    org.quartz.jobStore.dataSource=quartzDataSource
+
+

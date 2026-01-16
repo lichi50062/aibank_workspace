@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chl-%appname%-deployment-%appVer%
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: chl-%appname%
+      version: %appVer%
+  template:
+    metadata:
+      annotations:
+        io.prometheus/path: /actuator/prometheus
+        io.prometheus/port: "8080"
+        io.prometheus/scrape: "true"
+        sidecar.istio.io/proxyCPULimit: "1000m"
+        sidecar.istio.io/proxyMemoryLimit: "1024Mi"
+        sidecar.istio.io/proxyCPU: "50m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+        oneagent.dynatrace.com/inject: "false"
+      labels:
+        app: chl-%appname%
+        version: %appVer%
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: NotIn
+                values:
+                - tpebnkcldatu1w07t
+      containers:
+        - name: chl-%appname%
+          image: registry.groupt.fbt.com/tpebnknanot/channel/%projname%
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/resources/application-sit.yml
+              subPath: application-sit.yml
+            - name: logback-volume
+              mountPath: /app/resources/logback-spring.xml
+              subPath: logback-spring.xml
+            - name: log-pvc
+              mountPath: /app/logs
+            - name: pvc-static-assets
+              mountPath: /static-content
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: JAVA_OPTS
+              value: "-XX:MaxRAMPercentage=50"
+            - name: POD_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: PD4ML_ACTIVATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pd4ml-activation-key
+                  key: activation-key
+            - name: BIZ
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: client-id
+            - name: BIZ_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: client-secret
+          resources:
+            limits:
+              memory: 612Mi
+              cpu: 500m
+            requests:
+              memory: 128Mi
+              cpu: 50m
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cm-chl-yml
+        - name: logback-volume
+          configMap:
+            name: cm-chl-logback-xml
+        - name: log-pvc
+          persistentVolumeClaim:
+            claimName: log-pvc
+        - name: pvc-static-assets
+          persistentVolumeClaim:
+            claimName: pvc-static-assets

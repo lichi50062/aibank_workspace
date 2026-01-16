@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-server-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-server
+  template:
+    metadata:
+      annotations:
+        io.prometheus/path: /actuator/prometheus
+        io.prometheus/port: "8763"
+        io.prometheus/scrape: "true"
+        sidecar.istio.io/proxyCPULimit: "1000m"
+        sidecar.istio.io/proxyMemoryLimit: "1024Mi"
+        sidecar.istio.io/proxyCPU: "50m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+        oneagent.dynatrace.com/inject: "false"
+      labels:
+        app: gateway-server
+    spec:
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: kubernetes.io/hostname
+      #           operator: NotIn
+      #           values:
+      #           - tpebnkcldatu1w02t
+      containers:
+        - name: gateway-server
+          image: registry.groupt.fbt.com/tpebnknanot/server/gateway-server:%imageVersion%
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8763
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8763
+              scheme: HTTP
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          ports:
+            - containerPort: 8763
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/resources/application-sit.yml
+              subPath: application-sit.yml
+            - name: logback-volume
+              mountPath: /app/resources/logback-spring.xml
+              subPath: logback-spring.xml
+            - name: log-pvc
+              mountPath: /app/logs
+          env:
+            - name: JAVA_OPTS
+              value: "-XX:MaxRAMPercentage=50"
+            - name: POD_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 500m
+            requests:
+              memory: 128Mi
+              cpu: 50m
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cm-gateway-yml
+        - name: logback-volume
+          configMap:
+            name: cm-server-logback-xml
+        - name: log-pvc
+          persistentVolumeClaim:
+            claimName: log-pvc
+

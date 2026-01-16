@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-oauth-server
+spec:
+  selector:
+    app: oauth-server
+  ports:
+    - name: http-oauth-9999
+      port: 9999
+      protocol: TCP
+      targetPort: 9999
+    - name: http-oauth-8080
+      port: 8080
+      protocol: TCP
+      targetPort: 9999

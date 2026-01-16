@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ixtein-push-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ixtein-push
+  template:
+    metadata:
+      annotations:
+        io.prometheus/path: /actuator/prometheus
+        io.prometheus/port: "9110"
+        io.prometheus/scrape: "true"
+        sidecar.istio.io/inject: "false"
+        oneagent.dynatrace.com/inject: "false"
+      labels:
+        app: ixtein-push
+    spec:
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: kubernetes.io/hostname
+      #           operator: NotIn
+      #           values:
+      #           - tpebnkcldatu1w02t
+      containers:
+        - name: ixtein-push-server
+          image: registry.groupt.fbt.com/tpebnknanot/ixtein/fmcp-push-server:2025112601
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 9110
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 9110
+              scheme: HTTP
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          ports:
+            - containerPort: 9110
+          env:
+            - name: JAVA_OPTS
+              value: "-XX:MaxRAMPercentage=50 -Dspring.profiles.active=sit -Dlogging.config=/logback-spring.xml"
+            - name: TZ
+              value: "Asia/Taipei"
+            - name: DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ixtein-db-pass
+                  key: password
+            - name: POD_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: JASYPT_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: jasypt-private-key
+                  key: private-key
+          volumeMounts:
+            - name: pvc-ixtein
+              mountPath: /app/logs
+            - name: fcm-service-acct-volume
+              mountPath: /etc/aibank-fcm-service-acct.json
+              subPath: fcm-service-acct.json
+            - name: fcm-service-acct-volume-sit2
+              mountPath: /etc/aibank-dev-fcm-service-acct.json
+              subPath: fcm-service-acct.json
+            - name: mbank-fcm-service-acct-volume
+              mountPath: /etc/mbank-fcm-service-acct.json
+              subPath: fcm-service-acct.json
+            - name: config-volume
+              mountPath: /application-sit.yml
+              subPath: application-sit.yml
+            - name: config-volume
+              mountPath: /logback-spring.xml
+              subPath: logback-spring.xml
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 500m
+            requests:
+              memory: 128Mi
+              cpu: 50m
+      volumes:
+        - name: pvc-ixtein
+          persistentVolumeClaim:
+            claimName: pvc-ixtein
+        - name: fcm-service-acct-volume
+          secret:
+            secretName: push-service-acct
+        - name: fcm-service-acct-volume-sit2
+          secret:
+            secretName: push-service-acct-sit2
+        - name: mbank-fcm-service-acct-volume
+          secret:
+            secretName: mbank-push-service-acct
+        - name: config-volume
+          configMap:
+            name: cm-ixtein-push-config

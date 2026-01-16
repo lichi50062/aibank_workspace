@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-biz-%appname%
+spec:
+  selector:
+    app: biz-%appname%
+  ports:
+    - name: http-biz-%appname%-8080
+      port: 8080
+      protocol: TCP
+      targetPort: 8080

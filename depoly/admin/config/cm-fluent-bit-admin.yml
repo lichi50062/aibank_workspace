@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-fluent-bit-admin
+data:
+  fluent-bit-config-admin.conf: |+
+    [SERVICE]
+        Flush        1
+        Daemon       Off
+        Log_Level    trace
+        Parsers_file parsers.conf
+
+    [INPUT]
+        Name         tail
+        Path         /app/logs/admin/admin-${POD_NAME}.log
+        Tag          admin_json_logs
+        Buffer_Chunk_Size   100k
+        Buffer_Max_Size     5MB
+        Skip_Long_Lines     Off
+        Inotify_Watcher     false
+
+    [FILTER]
+        Name         parser
+        Match        *_json_logs
+        Key_Name     log
+        Parser       json
+
+    [OUTPUT]
+        Name          http
+        Match         *
+        Host          logstash-center.cldatu.groupt.fbt.com
+        uri           /public-app-log
+        Port          443
+        Format        json
+        tls           On
+        tls.verify    Off
+
+

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: swagger-gateway-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: swagger-gateway
+  template:
+    metadata:
+      labels:
+        app: swagger-gateway
+    spec:
+      containers:
+        - name: swagger-gateway
+          image: registry.groupt.fbt.com/tpebnknanot/tools/swagger-gateway:2025070802
+          ports:
+            - containerPort: 8080
+          env:
+            - name: JAVA_OPTS
+              value: "-Xmx256m"
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/resources/application-sit.yml
+              subPath: application-sit.yml
+          resources:
+            limits:
+              memory: 256Mi
+              cpu: 150m
+            requests:
+              memory: 128Mi
+              cpu: 50m
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cm-swagger-yml

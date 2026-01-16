@@ -1,0 +1,370 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-biz-yml
+data:
+  application-sit.yml: |+
+    spring:
+      jdbc:
+        template:
+          query-timeout: 30
+      jpa:
+        open-in-view: false
+        show-sql: true
+        properties:
+          jakarta.persistence.sharedCache.mode: NONE
+          eclipselink.jdbc.batch-writing: JDBC
+          eclipselink.logging.logger: JavaLogger
+          eclipselink.logging.level: FINE
+          eclipselink.jdbc.timeout: 30
+          eclipselink.sequencing.start-sequence-at-nextval: true
+      transaction:
+        default-timeout: 10
+        rollback-on-commit-failure: true
+    #  以下參數會自動在 DB 中建立 table, 建議只在本機使用
+    #      eclipselink.ddl-generation: create-or-extend-tables
+    #      eclipselink.ddl-generation.output-mode: database
+      security:
+        oauth2:
+          client:
+            registration:
+              biz: 
+                client-id: ${BIZ}
+                client-secret: ${BIZ_SECRET}
+                authorization-grant-type: client_credentials
+                scope: biz
+                provider: biz
+            provider:
+              biz:
+                token-uri: http://svc-oauth-server:9999/oauth2/token
+          resourceserver:
+            jwt:
+              jwk-set-uri: http://svc-oauth-server:9999/oauth2/jwks
+    # hikari datasource 還有很多設定可以調，開發環境先這樣就夠了
+      datasource:
+        pib:
+          hikari:
+            driver-class-name: oracle.jdbc.OracleDriver
+            url: jdbc:oracle:thin:@172.16.241.39:5211:TEBK
+            username: DBuserNEB
+            password: ${PIB_DB_PASS}
+            testWhileIdle: true
+            maximum-pool-size: 5
+            minimum-idle: 2
+            connection-timeout: 10000
+            idle-timeout: 60000
+            max-lifetime: 180000
+            keepalive-time: 30000
+            pool-name: PIB
+            leak-detection-threshold: 60000
+            data-source-properties:
+              oracle.jdbc.defaultConnectionValidation: LOCAL
+              oracle.jdbc.implicitStatementCacheSize: 20
+        aibank:
+          hikari:
+            driver-class-name: com.mysql.cj.jdbc.Driver
+            url: jdbc:mysql:loadbalance://10.11.4.228:6033,10.11.4.229:6033/aibank_dev
+            username: AIBnkUser
+            password: ${AIB_DB_PASS}
+            testWhileIdle: true
+            maximum-pool-size: 5
+            minimum-idle: 2
+            connection-timeout: 10000
+            idle-timeout: 60000
+            max-lifetime: 180000
+            keepalive-time: 30000
+            pool-name: AIBANK
+            leak-detection-threshold: 60000
+        mysql:
+          hikari:
+            driver-class-name: com.mysql.cj.jdbc.Driver
+            url: jdbc:mysql://10.11.4.229:6033/aibank_dev
+            username: AIBnkUser
+            password: ${AIB_DB_PASS}
+            testWhileIdle: true
+            maximum-pool-size: 5
+            minimum-idle: 2
+            connection-timeout: 10000
+            idle-timeout: 60000
+            max-lifetime: 180000
+            keepalive-time: 30000
+            pool-name: AIBANK
+            leak-detection-threshold: 60000    
+        piblog:
+          enabled: false
+          hikari:
+            driver-class-name: oracle.jdbc.OracleDriver
+            url: jdbc:oracle:thin:@//172.16.244.249:5211/TNEBK
+            username: DBUSERBKLOGSIT
+            password: ${PIB_LOG_DB_PASS}
+            testWhileIdle: true
+            maximum-pool-size: 5
+            minimum-idle: 2
+            connection-timeout: 10000
+            idle-timeout: 60000
+            max-lifetime: 180000
+            keepalive-time: 30000
+            pool-name: PIBLOG
+            data-source-properties:
+              oracle.jdbc.defaultConnectionValidation: LOCAL
+              oracle.jdbc.implicitStatementCacheSize: 20
+        cardevent:
+          enabled: false
+          hikari:
+            driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+            url: jdbc:sqlserver://;serverName=172.16.241.180;port=3302;databaseName=FBAPDB;encrypt=false;
+            username: sa
+            password: ${CARD_DB_PASS}
+            testWhileIdle: true
+            maximum-pool-size: 5
+            minimum-idle: 2
+            connection-timeout: 10000
+            idle-timeout: 60000
+            max-lifetime: 180000
+            keepalive-time: 30000
+            pool-name: CARDEVENT
+        peoplesoft:
+          enabled: false
+          hikari:
+            driver-class-name: oracle.jdbc.OracleDriver
+            url: jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = 172.17.241.217)(PORT=5211))(ADDRESS = (PROTOCOL = TCP)(HOST = 172.19.243.30)(PORT=5211))(LOAD_BALANCE = yes))(CONNECT_DATA =(SERVER = DEDICATED)(SERVICE_NAME  = TWMSC)(FAILOVER_MODE =(TYPE = SELECT)(METHOD = BASIC)(RETRIES =180)(DELAY = 5))))
+            username: PEOPSOFT
+            password: ${PEOPLESOFT_DB_PASS}
+            testWhileIdle: true
+            maximum-pool-size: 5
+            minimum-idle: 2
+            connection-timeout: 10000
+            idle-timeout: 60000
+            max-lifetime: 180000
+            keepalive-time: 30000
+            pool-name: PEOPLESOFT
+        cachedb2:
+          enabled: false
+          hikari:
+            driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+            url: jdbc:sqlserver://;serverName=172.16.241.180;port=3301;databaseName=CacheDB2;encrypt=false
+            username: DBUserEB
+            password: ${CACHEDB2_DB_PASS}
+            testWhileIdle: true
+            maximum-pool-size: 5
+            minimum-idle: 2
+            connection-timeout: 10000
+            idle-timeout: 60000
+            max-lifetime: 180000
+            keepalive-time: 30000
+            pool-name: CACHEDB2
+        fbotw:
+          enabled: false
+          hikari:
+            driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+            url: jdbc:sqlserver://;serverName=172.17.241.68;port=3301;databaseName=FBO_TW;encrypt=false
+            username: DBUserEBANK
+            password: ${FBOTW_DB_PASS}
+            testWhileIdle: true
+            maximum-pool-size: 5
+            minimum-idle: 2
+            connection-timeout: 10000
+            idle-timeout: 60000
+            max-lifetime: 180000
+            keepalive-time: 30000
+            pool-name: FBOTW
+    # biz 不需要 session store
+      data:
+        redis:
+          host: svc-redis-server
+          port: 6379
+      rabbitmq:
+        addresses: rabbitmq-private-0.rabbitmq-private:5672
+        address-shuffle-mode: none
+    
+    # feign client 專用的 properties
+      cloud:
+        openfeign:
+          hystrix:
+            enabled: false
+          client:
+            config:
+              default:
+                connectTimeout: 10000
+                readTimeout: 60000
+                loggerLevel: basic
+    
+    # 以下為管理需要之 endpoint
+    management:
+      endpoint:
+        info:
+          enabled: true
+        env:
+          enabled: true
+        health:
+          enabled: true
+          show-details: ALWAYS
+          group:
+            readiness:
+              include: readinessState
+            liveness:
+              include: livenessState
+        prometheus:
+          enabled: true
+      health:
+        jms:
+          enabled: false
+        readinessstate:
+          enabled: true
+        livenessstate:
+          enabled: true
+      endpoints:
+        web:
+          exposure:
+            include:
+              - prometheus
+              - env
+              - metrics
+              - info
+              - health
+    
+    # 以下為 AIBANK 自訂參數
+    aibank:
+      common:
+        imp-app-name: aibank_dev
+        api-base-uri: /api
+        cache:
+          redis:
+            host: svc-redis-cache
+            port: 6379
+        feign:
+    # feign client 各服務的 url, 開發環境需要指定
+          service-aibank-system-config-url: http://svc-biz-system-config:8080
+          service-aibank-notification-url: http://svc-biz-notification:8080
+          service-aibank-credit-card-url: http://svc-biz-credit-card:8080
+          service-aibank-mutual-fund-url: http://svc-biz-mutual-fund:8080
+          service-aibank-invest-url: http://svc-biz-invest:8080
+          service-aibank-deposit-url: http://svc-biz-deposit:8080
+          service-aibank-payment-url: http://svc-biz-payment:8080
+          service-aibank-user-url: http://svc-biz-user:8080
+          service-aibank-security-url: http://svc-biz-security:8080
+          service-aibank-information-url: http://svc-biz-information:8080
+          service-aibank-loan-url: http://svc-biz-loan:8080
+          service-aibank-insurance-url: http://svc-biz-insurance:8080
+          service-aibank-foreign-exchange-url: http://svc-biz-foreign-exchange:8080
+          service-aibank-transfer-url: http://svc-biz-transfer:8080
+          service-aibank-preferences-url: http://svc-biz-preferences:8080
+          service-aibank-account-url: http://svc-biz-account:8080
+          service-aibank-opendata-api-url: http://svc-biz-opendata-api:8080
+          ixtein-push-url: http://svc-ixtein-push:8080
+    # oauth server url
+        oauth2:
+          access-token-uri: http://svc-oauth-server:9999/oauth2/token
+          client-id: ${BIZ}
+          client-secret: ${BIZ_SECRET}
+        csp:
+          enable: false
+      biz:
+        swagger-ui:
+          enabled: true
+      crypto:
+        seckey:
+          providers:
+            com.ibm.tw.commons.util.crypto.SecretKeyProviderFactory: com.ibm.tw.ibmb.component.crypto.DummySecretKeyProvider
+            #com.ibm.tw.biz.b2c.uaa.persistence.dao.impl.CompanyDAO: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+            #com.ibm.tw.biz.b2c.uaa.persistence.dao.impl.UserDAO: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+            com.tfb.aibank.component.crypto.DBSecretKeyProvider: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+            com.fubon.tw.pib.persistence.b2c.entity.support.ReissueHouseLoanDataEntityListener: com.tfb.aibank.component.crypto.ReissueSecretKeyProvider
+      push:
+        resultQueue: receive.queue
+        concurrency: 10
+      notification:
+        enable-async: true
+        email:
+          queue: "email.queue"
+          concurrency: 10
+        billhunter:
+          queue: "billhunter.queue"
+          concurrency: 10
+        sms:
+          queue: "sms.queue"
+          concurrency: 10
+        expense-notify:
+          queue: "expense-notify.queue"
+          concurrency: 1
+          enabled: false
+      log:
+        fields-to-hide: CARD_HOLD_ID
+      # kafka 個人化訂閱路徑
+      personal-subscription:
+        bootstrap-servers: 172.16.243.35:9092,172.16.243.36:9092,172.16.243.37:9092
+        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+        group-id: aibank-group
+        topic-pattern: offerId_.*._push_sit
+    # 以下為 EAI 設定
+    
+    eai:
+      client-system-id: AIBANK
+      channels:
+        InternetBank:
+          spName: AIBANK
+          loginId: AIBANK
+          wsId: AIBANK
+          tellerId: 2004111
+        CBS_IB:
+          spName: AIBANK
+          loginId: AIBANK
+          wsId: AIBANK
+          tellerId: 2004111
+        EB:
+          spName: AIBANK
+          loginId: AIBANK
+          wsId: AIBANK
+          tellerId: 2004133
+        CBS_EB:
+          spName: AIBANK
+          loginId: AIBANK
+          wsId: AIBANK
+          tellerId: 2004133
+        AS400:
+          spName: AIBANK
+          loginId: AIBANK
+          wsId: AIBANK
+          tellerId: 028WEB
+        MOBILE:
+          spName: AIBANK
+          loginId: AIBANK
+          wsId: AIBANK
+          tellerId: AIBANK
+        eFamily:
+          spName: eFamily
+          loginId: eFamily
+          wsId: eFamily
+          tellerId: eFamily
+        ESB:
+          spName: AIBANK
+          loginId: AIBANK
+          wsId: AIBANK
+          tellerId: AIBANK
+        CBS:
+          spName: AIBANK
+          loginId: AIBANK
+          wsId: AIBANK
+          tellerId: 2004112
+        IB_AS400:
+          spName: eBANK
+          loginId: EB_EBPWAS2
+          wsId: TBK_WEB001
+          tellerId: 028WEB
+        IB_CBS:
+          spName: eBANK
+          loginId: EB_EBPWAS2
+          wsId: eBANK
+          tellerId: 2004011
+      #postURL: http://172.19.241.10:9201
+      postURL: http://svc-eai-simulator:8080/HttpPost.ashx
+      max-conversation-times: 1000
+      check-integrity: false
+      connection-timeout: 30000
+      socket-timeout: 120000
+    springdoc:
+      paths-to-exclude: /base/version,/echo/*
+      swagger-ui:
+        enabled: ${aibank.biz.swagger-ui.enabled}
+        operationsSorter: alpha

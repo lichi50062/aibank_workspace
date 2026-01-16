@@ -1,0 +1,161 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: batch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: batch
+  template:
+    metadata:
+      annotations:
+        io.prometheus/path: /actuator/prometheus
+        io.prometheus/port: "8080"
+        io.prometheus/scrape: "true"
+        sidecar.istio.io/inject: "false"
+        oneagent.dynatrace.com/inject: "false"
+      labels:
+        app: batch
+    spec:
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: kubernetes.io/hostname
+      #           operator: NotIn
+      #           values:
+      #           - tpebnkcldatu1w02t
+      hostAliases:
+      - ip: "10.11.2.40"
+        hostnames:
+        - "cardpromotetest.taipeifubon.com.tw"
+      - ip: "61.218.86.237"
+        hostnames:
+        - "member-test.fisc.com.tw"
+      containers:
+        - name: batch
+          image: registry.groupt.fbt.com/tpebnknanot/batch/aibank-batch:%imageVersion%
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+            periodSeconds: 60
+            successThreshold: 1
+            failureThreshold: 10
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/resources/application-sit.yml
+              subPath: application-sit.yml
+            - name: logback-volume
+              mountPath: /app/resources/logback.xml
+              subPath: logback-spring.xml
+            - name: quartz-volume
+              mountPath: /app/resources/quartz.properties
+              subPath: quartz.properties
+            - name: log-pvc
+              mountPath: /app/logs
+            - name: pvc-static-assets
+              mountPath: /static-content
+            - name: cert-volume
+              mountPath: /app/certs
+          env:
+            - name: SERVER_PORT
+              value: "8080"
+            - name: POD_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: JAVA_OPTS
+              value: "-XX:MaxRAMPercentage=50"
+            - name: PIB_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: pib-db-pass
+                  key: password
+            - name: AIB_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: aib-db-pass
+                  key: password
+            - name: PIB_LOG_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: pib-log-db-pass
+                  key: password
+            - name: CARD_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: card-event-db-pass
+                  key: password
+            - name: PEOPLESOFT_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: peoplesoft-db-pass
+                  key: password
+            - name: CACHEDB2_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: cachedb2-db-pass
+                  key: password
+            - name: FBOTW_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: fbotw-db-pass
+                  key: password
+            - name: BIZ
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: client-id
+            - name: BIZ_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth-secret
+                  key: client-secret
+          resources:
+            limits:
+              memory: 612Mi
+              cpu: 500m
+            requests:
+              memory: 128Mi
+              cpu: 50m
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cm-biz-yml
+        - name: logback-volume
+          configMap:
+            name: cm-batch-logback-xml
+        - name: quartz-volume
+          configMap:
+            name: cm-quartz-properties
+        - name: log-pvc
+          persistentVolumeClaim:
+            claimName: log-pvc
+        - name: pvc-static-assets
+          persistentVolumeClaim:
+            claimName: pvc-static-assets
+        - name: cert-volume
+          secret:
+            secretName: batch-esmbt097-certificate

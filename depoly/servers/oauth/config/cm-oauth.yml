@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-oauth-yml
+data:
+  application-sit.yml: |+
+    aibank:
+      common:
+        csp:
+          enable: false
+    # 以下為管理需要之 endpoint
+    management:
+      endpoint:
+        info:
+          enabled: true
+        env:
+          enabled: true
+        health:
+          enabled: true
+          show-details: ALWAYS
+          group:
+            readiness:
+              include: readinessState
+            liveness:
+              include: livenessState
+        prometheus:
+          enabled: true
+      health:
+        jms:
+          enabled: false
+        readinessstate:
+          enabled: true
+        livenessstate:
+          enabled: true
+      endpoints:
+        web:
+          exposure:
+            include:
+              - prometheus
+              - env
+              - metrics
+              - info
+              - health
+    
+    # 以下資訊應由 k8s config map 取代      
+    oauth:
+    # 此設定限 DEV or SIT 環境 （供 swagger 使用）
+      allow-cors: true
+      keystore:
+        path: file:///app/resources/sitKeyStore.jks
+        pass: ${KEYSTORE_PASS}
+      credentials:
+        - clientId: chl
+          clientSecret: ${CHL_CLIENT_SECRET}
+          grantTypes: 
+            - client_credentials
+          scopes: 
+            - chl
+          validSec: 3600
+          username: chluser
+          secret: ${CHL_USER_SECRET}
+        - clientId: biz
+          clientSecret: ${BIZ_CLIENT_SECRET}
+          grantTypes: 
+            - client_credentials
+          scopes: 
+            - biz
+          validSec: 3600
+        - clientId: motp
+          clientSecret: ${MOTP_CLIENT_SECRET}
+          grantTypes:
+            - client_credentials
+          scopes:
+            - motp
+          validSec: 3600
+        - clientId: mbank
+          clientSecret: ${MBANK_CLIENT_SECRET}
+          grantTypes:
+            - client_credentials
+          scopes:
+            - mbank
+          validSec: 3600

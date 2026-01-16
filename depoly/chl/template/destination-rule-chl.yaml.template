@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: chl-%appname%-destination-rule
+spec:
+  host: svc-chl-%appname%
+  subsets:
+  - name: v1
+    labels:
+      app: chl-%appname%
+      version: v1
+    trafficPolicy:
+      outlierDetection:
+        consecutive5xxErrors: 5
+        interval: 10s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 100
+  - name: v2
+    labels:
+      app: chl-%appname%
+      version: v2
+    trafficPolicy:
+      outlierDetection:
+        consecutive5xxErrors: 5
+        interval: 10s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 100

@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/proxyCPULimit: "1000m"
+        sidecar.istio.io/proxyMemoryLimit: "1024Mi"
+        sidecar.istio.io/proxyCPU: "50m"
+        sidecar.istio.io/proxyMemory: "128Mi"
+        oneagent.dynatrace.com/inject: "false"
+      labels:
+        app: nginx
+    spec:
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #       - matchExpressions:
+      #         - key: kubernetes.io/hostname
+      #           operator: NotIn
+      #           values:
+      #           - tpebnkcldatu1w02t
+      containers:
+        - name: nginx
+          image: registry.groupt.fbt.com/tpebnknanot/infra/nginx:1.28.0-alpine-slim-logrotate
+          imagePullPolicy: Always
+          securityContext:
+            readOnlyRootFilesystem: false
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/nginx/conf.d/default.conf.template
+              subPath: default.conf
+            - name: config-volume
+              mountPath: /etc/nginx/inc/security-headers.conf
+              subPath: security-headers.conf
+            - name: config-volume
+              mountPath: /etc/nginx/nginx.conf.template
+              subPath: nginx.conf
+            - name: config-volume
+              mountPath: /etc/nginx/logrotate.conf.template
+              subPath: logrotate.conf
+            - name: pvc-static-assets
+              mountPath: /static-content
+            - name: log-pvc
+              mountPath: /app/logs
+            - name: tmp-volume
+              mountPath: /tmp
+          resources:
+            limits:
+              memory: 256Mi
+              cpu: 100m
+            requests:
+              memory: 128Mi
+              cpu: 50m
+          env:
+            - name: TZ
+              value: "Asia/Taipei"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: LOG_LEVEL
+              value: info
+            - name: LOG_RETENTION_HOURS
+              value: "720"
+            - name: LOGROTATE_INTERVAL
+              value: hourly
+            - name: LOG_BASE_PATH
+              value: /app/logs
+            - name: NGINX_LOG_PATH
+              value: /app/logs/nginx
+            - name: NGINX_ARCHIVE_PATH
+              value: /app/logs/archives/nginx
+      volumes:
+        - name: config-volume
+          configMap:
+            name: cm-nginx-config
+            defaultMode: 0755
+        - name: pvc-static-assets
+          persistentVolumeClaim:
+            claimName: pvc-static-assets
+        - name: log-pvc
+          persistentVolumeClaim:
+            claimName: log-pvc
+        - name: tmp-volume
+          emptyDir: {}

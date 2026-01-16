@@ -1,0 +1,170 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-nginx-config
+data:
+  default.conf: |+
+    proxy_cache_path /nginx_cache levels=1:2 keys_zone=myzone:1m inactive=1d max_size=1g;
+    proxy_cache_key '$scheme$host$request_uri$is_args$args';
+    server {
+            listen  8080;
+            server_name _;
+            root    /static-content;
+            include /etc/nginx/inc/security-headers.conf;
+            location / {
+                autoindex off;
+            }
+            location /static/ {
+                include /etc/nginx/inc/security-headers.conf;
+                add_header Cache-Control 'max-age=43200'; # one day
+                autoindex off;
+            }
+            location /ixtein/directupdate/download/ {
+              proxy_cache myzone;
+
+              proxy_http_version 1.1;
+              proxy_pass http://svc-ixtein:9080;
+              # ignore set cookie for cache
+              proxy_ignore_headers "Set-Cookie";
+              add_header X-Cache-Status $upstream_cache_status;
+              include /etc/nginx/inc/security-headers.conf;
+            }
+            # for money dj development
+            location /api/ {
+                proxy_set_header Host openapitest.moneydj.com; 
+                proxy_http_version 1.1;
+                proxy_pass https://openapitest.moneydj.com;
+                autoindex off;
+                include /etc/nginx/inc/security-headers.conf;
+            }
+            error_page 400 403 404 /html/40x.html;
+            location = /html/40x.html {
+                    root /static-content;
+                    internal;
+            }
+            error_page 500 502 503 504 /html/50x.html;
+            location = /html/50x.html {
+                    root /static-content;
+                    internal;
+            }
+    }
+  security-headers.conf: |+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' ; connect-src 'self' ; img-src 'self' data: blob: ; frame-src 'self' data: blob:; style-src 'self' 'unsafe-inline' ; frame-ancestors 'self'" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin" always;
+    add_header Feature-Policy "microphone 'none'; geolocation 'none'; camera 'none'" always;
+    add_header X-XSS-Protection "1; mode=block";
+    add_header Cache-Control private,no-store;
+    add_header Permissions-Policy "camera=(), fullscreen=(), geolocation=(), microphone=(), payment=()";
+  nginx.conf: |+
+    user  nginx;
+    worker_processes 2;
+
+    error_log  /var/log/nginx/error.log ${LOG_LEVEL};
+    error_log  ${NGINX_LOG_PATH}/${POD_NAME}-error.log ${LOG_LEVEL};
+
+
+    pid        /var/run/nginx.pid;
+
+    events {
+        worker_connections  1024;
+    }
+
+
+    http {
+        include       /etc/nginx/mime.types;
+        default_type  application/octet-stream;
+
+        log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                          '$status $body_bytes_sent "$http_referer" '
+                          '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log  /var/log/nginx/access.log  main;
+        access_log  ${NGINX_LOG_PATH}/${POD_NAME}-access.log  main;
+
+        sendfile        on;
+        #tcp_nopush     on;
+
+        keepalive_timeout  65;
+        client_max_body_size 10m;
+        #gzip  on;
+
+        include /etc/nginx/conf.d/*.conf;
+    }
+
+  logrotate.conf: |
+    ${NGINX_LOG_PATH}/${POD_NAME}-access.log ${NGINX_LOG_PATH}/${POD_NAME}-error.log {
+        ${LOGROTATE_INTERVAL}
+        missingok
+        rotate ${LOG_RETENTION_HOURS}
+        #notifempty
+        sharedscripts
+        #copytruncate
+        nocompress
+        dateext
+        dateformat -%Y-%m-%d-%H
+
+        create 0644 nginx nginx
+
+        extension .log
+
+        olddir ${NGINX_ARCHIVE_PATH}
+        
+        prerotate
+            echo "$(date '+%Y-%m-%d %H:%M:%S.%3N'): Starting log rotation for ${POD_NAME}" >> ${NGINX_LOG_PATH}/rotation.log
+
+            if [ ! -d ${NGINX_ARCHIVE_PATH} ]; then
+                mkdir -p ${NGINX_ARCHIVE_PATH}
+            fi
+            
+
+            # 記錄輪替前的日誌狀態
+            for logfile in ${NGINX_LOG_PATH}/${POD_NAME}-access.log ${NGINX_LOG_PATH}/${POD_NAME}-error.log; do
+                if [ -f "$logfile" ]; then
+                    logsize=$(stat -c%s "$logfile" 2>/dev/null || echo "0")
+                    echo "$(date '+%Y-%m-%d %H:%M:%S.%3N'): Pre-rotation size of $logfile: $logsize bytes" >> ${NGINX_LOG_PATH}/rotation.log
+                fi
+            done
+
+            chown nginx:nginx ${NGINX_LOG_PATH}/${POD_NAME}-access.log 2>/dev/null || true
+            chown nginx:nginx ${NGINX_LOG_PATH}/${POD_NAME}-error.log 2>/dev/null || true
+            
+            # 強制同步檔案系統緩衝區
+            sync
+
+            sleep 0.1
+        endscript
+        
+        postrotate
+            echo "$(date '+%Y-%m-%d %H:%M:%S.%3N'): Log files rotated, sending USR1 to Nginx" >> ${NGINX_LOG_PATH}/rotation.log
+
+            if [ -f /var/run/nginx.pid ]; then
+              nginx_pid=$(cat /var/run/nginx.pid)
+
+              kill -USR1 `cat /var/run/nginx.pid`
+
+              echo "$(date '+%Y-%m-%d %H:%M:%S.%3N'): USR1 signal sent to Nginx PID $nginx_pid" >> ${NGINX_LOG_PATH}/rotation.log
+            fi
+
+            sleep 1
+
+            # 驗證新日誌檔案
+            for logfile in ${NGINX_LOG_PATH}/${POD_NAME}-access.log ${NGINX_LOG_PATH}/${POD_NAME}-error.log; do
+                if [ -f "$logfile" ]; then
+                    # 確保正確的所有權
+                    chown nginx:nginx "$logfile" 2>/dev/null || true
+                    chmod 644 "$logfile" 2>/dev/null || true
+                    
+                    # 記錄新檔案狀態
+                    logsize=$(stat -c%s "$logfile" 2>/dev/null || echo "0")
+                    echo "$(date '+%Y-%m-%d %H:%M:%S.%3N'): Post-rotation size of $logfile: $logsize bytes" >> ${NGINX_LOG_PATH}/rotation.log
+                else
+                    echo "$(date '+%Y-%m-%d %H:%M:%S.%3N'): WARNING: New log file $logfile not found after rotation" >> ${NGINX_LOG_PATH}/rotation.log
+                fi
+            done
+            echo "$(date '+%Y-%m-%d %H:%M:%S.%3N'): Log rotation completed for ${POD_NAME}" >> ${NGINX_LOG_PATH}/rotation.log
+            echo "---" >> ${NGINX_LOG_PATH}/rotation.log
+        endscript
+    }

@@ -1,0 +1,149 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm-chl-yml
+data:
+  application-sit.yml: |+
+    spring:
+      security:
+        oauth2:
+          client:
+            registration:
+              biz:
+                client-id: ${BIZ}
+                client-secret: ${BIZ_SECRET}
+                authorization-grant-type: client_credentials
+                scope: biz
+                provider: biz
+            provider:
+              biz:
+                token-uri: http://svc-oauth-server:9999/oauth2/token
+          resourceserver:
+            jwt:
+              jwk-set-uri: http://svc-oauth-server:9999/oauth2/jwks
+      session:
+        store-type: redis
+        redis:
+    # 不自動更改 redis config ( 預設會自動 enable keyspace notification )
+          configure-action: NONE
+    # session cleanup cron, 整個系統只需要 1～2 個 pod 有開就好，spring 2.2 之後可以設成 "-" 來 disable
+    # 需要開的 cron 請設成 expression: 0 * * * * *
+          cleanup-cron: "-"
+      data:
+        redis:
+          lettuce:
+            cluster:
+              refresh:
+        # 自動偵測 topology changes
+                adaptive: true
+        # 本機開發使用
+          host: svc-redis-server
+          port: 6379
+      cache:
+        type: redis
+        redis:
+    # duration of 1 day
+          time-to-live: P1D
+    # feign client 專用的 properties
+      cloud:
+        openfeign:
+          hystrix:
+            enabled: false
+          client:
+            config:
+              default:
+                connectTimeout: 10000
+                readTimeout: 60000
+                loggerLevel: full
+
+    # 以下為管理需要之 endpoint
+    management:
+      tracing:
+        sampling:
+          probability: 1.0
+      endpoint:
+        info:
+          enabled: true
+        env:
+          enabled: true
+        health:
+          enabled: true
+          show-details: ALWAYS
+          group:
+            readiness:
+              include: readinessState
+            liveness:
+              include: livenessState
+        prometheus:
+          enabled: true
+      health:
+        jms:
+          enabled: false
+        readinessstate:
+          enabled: true
+        livenessstate:
+          enabled: true
+      endpoints:
+        web:
+          exposure:
+            include:
+              - prometheus
+              - env
+              - metrics
+              - info
+              - health
+
+    # 以下為 AIBANK 自訂參數
+
+    aibank:
+      crypto:
+        seckey:
+          providers:
+            com.ibm.tw.commons.util.crypto.SecretKeyProviderFactory: com.ibm.tw.ibmb.component.crypto.DummySecretKeyProvider
+            #com.ibm.tw.biz.b2c.uaa.persistence.dao.impl.CompanyDAO: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+            #com.ibm.tw.biz.b2c.uaa.persistence.dao.impl.UserDAO: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+            com.tfb.aibank.component.crypto.DBSecretKeyProvider: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+            com.fubon.tw.pib.persistence.b2c.entity.support.ReissueHouseLoanDataEntityListener: com.tfb.aibank.component.crypto.ReissueSecretKeyProvider
+      channel:
+        session-cleaner:
+    # 登入的微服務要設 true, 如 channel-twaibankc-general
+          enabled: false
+          cron: 0 * * * * *
+        use-hystrix-command: true
+    # 檢查重複 token, 本機開發不檢查
+        validate-token: true
+      common:
+        api-base-uri: /api
+        cache:
+          redis:
+            host: svc-redis-cache
+            port: 6379
+        feign:
+    # feign client 各服務的 url, 開發環境需要指定
+          # 以下設定是打 mock 進到 SIT, 有需要時可改為本機 service
+          service-aibank-account-url: http://svc-biz-account:8080
+          service-aibank-credit-card-url: http://svc-biz-credit-card:8080
+          service-aibank-deposit-url: http://svc-biz-deposit:8080
+          service-aibank-foreign-exchange-url: http://svc-biz-foreign-exchange:8080
+          service-aibank-information-url: http://svc-biz-information:8080
+          service-aibank-insurance-url: http://svc-biz-insurance:8080
+          service-aibank-invest-url: http://svc-biz-invest:8080
+          service-aibank-loan-url: http://svc-biz-loan:8080
+          service-aibank-mutual-fund-url: http://svc-biz-mutual-fund:8080
+          service-aibank-notification-url: http://svc-biz-notification:8080
+          service-aibank-payment-url: http://svc-biz-payment:8080
+          service-aibank-preferences-url: http://svc-biz-preferences:8080
+          service-aibank-security-url: http://svc-biz-security:8080
+          service-aibank-system-config-url: http://svc-biz-system-config:8080
+          service-aibank-transfer-url: http://svc-biz-transfer:8080
+          service-aibank-user-url: http://svc-biz-user:8080
+          service-aibank-internal-allowed-url: http://svc-biz-internal-allowed:8080
+    # oauth server url
+        oauth2:
+          access-token-uri: http://svc-oauth-server:9999/oauth2/token
+          client-id: ${BIZ}
+          client-secret: ${BIZ_SECRET}
+        csp:
+          enable: false
+        pd4ml:
+          activation-key: ${PD4ML_ACTIVATION_KEY}
