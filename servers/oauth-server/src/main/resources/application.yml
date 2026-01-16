@@ -1,0 +1,70 @@
+server:
+  port: ${SERVER_PORT:9999}
+  
+info:
+  component: Security Server
+
+spring:
+  application:
+    name: oauth
+
+
+# 以下為管理需要之 endpoint
+management:
+  endpoint:
+    info:
+      enabled: true
+    env:
+      enabled: true
+    health:
+      enabled: true
+      show-details: ALWAYS
+      group:
+        readiness:
+          include: readinessState
+        liveness:
+          include: livenessState
+    prometheus:
+      enabled: true
+  health:
+    jms:
+      enabled: false
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - env
+          - metrics
+          - info
+          - health
+
+# 以下資訊應由 k8s config map 取代      
+oauth:
+# 此設定限 DEV or SIT 環境 （供 swagger 使用）
+  allow-cors: true
+  keystore:
+    path: file:../../aibank_workspace/dev/config/server/oauth/myStore.txt
+    pass: ksPass
+  credentials:
+    - clientId: chl
+      clientSecret: chlsecret
+      grantTypes: 
+        - client_credentials
+      scopes: 
+        - chl
+      validSec: 3600
+      username: chluser
+      secret:  chlsecret
+    - clientId: biz
+      clientSecret: bizsecret
+      grantTypes: 
+        - client_credentials
+      scopes: 
+        - biz
+      validSec: 3600
+

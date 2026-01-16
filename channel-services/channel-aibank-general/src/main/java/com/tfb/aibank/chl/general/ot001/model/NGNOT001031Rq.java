@@ -1,0 +1,43 @@
+package com.tfb.aibank.chl.general.ot001.model;
+
+import org.springframework.stereotype.Component;
+
+import com.ibm.tw.ibmb.base.model.RqData;
+
+//@formatter:off
+/**
+* @(#)NGNOT001031Rq.java 
+* 
+* <p>Description:裝置綁定條款頁</p>
+* 
+* <p>Modify History:</p>
+* <ol>1.0, 20230605, JohnChang
+*  <li>初版</li6
+* </ol>
+* <ol>[版號累加], [日期], [作者]
+*  <li>[異動說明]</li>
+* </ol>
+*/
+//@formatter:on
+@Component
+public class NGNOT001031Rq implements RqData {
+
+    /** 設定項目 */
+    private String nextPage;
+
+    /**
+     * @return the nextPage
+     */
+    public String getNextPage() {
+        return nextPage;
+    }
+
+    /**
+     * @param nextPage
+     *            the nextPage to set
+     */
+    public void setNextPage(String nextPage) {
+        this.nextPage = nextPage;
+    }
+
+}

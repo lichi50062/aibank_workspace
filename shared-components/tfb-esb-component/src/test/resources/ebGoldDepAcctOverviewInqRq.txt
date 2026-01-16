@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sev:ServiceEnvelope xmlns:sev="http://ns.chinatrust.com.tw/XSD/CTCB/ESB/Message/EMF/ServiceEnvelope">
+<ServiceHeader xmlns="http://ns.chinatrust.com.tw/XSD/CTCB/ESB/Message/EMF/ServiceHeader">
+<ServiceName>ebGoldDepAcctOverviewInq</ServiceName>
+<ServiceVersion>01</ServiceVersion>
+<TransactionID>INEB201707171935784</TransactionID>
+<RqTimestamp>2017-07-17T15:24:34.420+08:00</RqTimestamp>
+</ServiceHeader>
+<sbo:ServiceBody xmlns:sbo="http://ns.chinatrust.com.tw/XSD/CTCB/ESB/Message/EMF/ServiceBody">
+<ebGoldDepAcctOverviewInqRq xmlns="http://ns.chinatrust.com.tw/XSD/CTCB/ESB/Message/BSMF/ebGoldDepAcctOverviewInqRq/01">
+<REQHDR>
+<TrnNum>INEB201707171935784</TrnNum>
+<TrnCode>gd090001</TrnCode>
+</REQHDR>
+<REQBDY>
+<CustId>B101063165</CustId>
+<UserId>BB1010</UserId>
+<PIN>F0F62A9D94C6F70C6002A24254D1F2DB537B</PIN>
+</REQBDY>
+</ebGoldDepAcctOverviewInqRq>
+</sbo:ServiceBody>
+</sev:ServiceEnvelope>

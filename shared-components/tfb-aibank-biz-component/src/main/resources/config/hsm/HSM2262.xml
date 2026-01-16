@@ -1,0 +1,60 @@
+<?xml version="1.0"?>		        
+<TX value="com.igsapp.ext.msg.string.MsgDocument">
+	<FORMAT>
+		<RECORD id="sendToHost" >
+			<FIELD id="HEAD_TRACE_NO"  maxLen="6"   minLen="6"  padding="0" align="RIGHT" type="CHARACTER" default="000000" />
+			<FIELD id="MSG_TYPE"       maxLen="4"   minLen="4"  padding=" " align="LEFT"  type="CHARACTER" default="0200" />
+			<FIELD id="BIT_MAP_CONFIG" maxLen="8"   minLen="8"  padding=" " align="LEFT"  type="BINARY"    default="7220000000C20007" />
+			<FIELD id="ACCT_NO_LEN"    maxLen="2"   minLen="2"  padding="0" align="LEFT"  type="CHARACTER" default="16" />
+			<FIELD id="ACCT_NO"        maxLen="16"  minLen="16" padding="0" align="RIGHT" type="CHARACTER" default="0" />
+			<FIELD id="HANDLE_CODE"    maxLen="6"   minLen="6"  padding="0" align="LEFT"  type="CHARACTER" default="000000" />
+			<FIELD id="AMOUNT"         maxLen="12"  minLen="12" padding="0" align="RIGHT" type="CHARACTER" default="000000000000" />
+			<FIELD id="TX_DATE_TIME"   maxLen="10"  minLen="10" padding=" " align="LEFT"  type="CHARACTER" default=" " />
+			<FIELD id="TRACE_NO"       maxLen="6"   minLen="6"  padding="0" align="RIGHT" type="CHARACTER" default="000000" />
+			<FIELD id="TERM_NO"        maxLen="8"   minLen="8"  padding=" " align="LEFT"  type="CHARACTER" default="2003701 " />
+			<FIELD id="CHANNEL_ID"     maxLen="15"  minLen="15" padding="0" align="LEFT"  type="CHARACTER" default="000000000000000" />
+			<FIELD id="DATA_LEN"       maxLen="3"   minLen="3"  padding="0" align="RIGHT" type="CHARACTER" default="100" />						
+			<FIELD id="P_CODE"         maxLen="4"   minLen="4"  padding=" " align="LEFT"  type="CHARACTER" default="2262" />			
+			<FIELD id="TERM_TYPE"      maxLen="4"   minLen="4"  padding="0" align="LEFT"  type="CHARACTER" default="6533" />			
+			<FIELD id="TERM_CHK_CODE"  maxLen="8"   minLen="8"  padding=" " align="LEFT"  type="CHARACTER" default="12345678" />
+			<FIELD id="USER_ID"        maxLen="11"  minLen="11" padding=" " align="LEFT"  type="CHARACTER" default=" " />
+			<FIELD id="BANK_CODE"      maxLen="8"   minLen="8"  padding="0" align="LEFT"  type="CHARACTER" default="0" />
+			<FIELD id="IN_BANK_CODE"   maxLen="8"   minLen="8"  padding="0" align="LEFT"  type="CHARACTER" default="00000000" />									
+			<FIELD id="PAY_TYPE"       maxLen="5"   minLen="5"  padding=" " align="LEFT"  type="CHARACTER" default=" " />
+			<FIELD id="COLL_NO"        maxLen="12"  minLen="12" padding=" " align="LEFT"  type="CHARACTER" default="            "/>									
+			<FIELD id="TX_MEMO"        maxLen="40"  minLen="40" padding=" " align="LEFT"  type="CHARACTER" default=" "/>									
+			<FIELD id="BATCH_DATA_LEN" maxLen="3"   minLen="3"  padding="0" align="RIGHT" type="CHARACTER" default="008" />
+			<FIELD id="BATCH_NO"       maxLen="6"   minLen="6"  padding="0" align="RIGHT" type="CHARACTER" default="000000" />
+			<FIELD id="VER_NO"         maxLen="2"   minLen="2"  padding="0" align="RIGHT" type="CHARACTER" default="00" />
+			<FIELD id="TAC_LEN"        maxLen="3"   minLen="3"  padding="0" align="RIGHT" type="CHARACTER" default="008" />			
+			<FIELD id="TAC_DATA"       maxLen="8"   minLen="8"  padding=" " align="LEFT"  type="BINARY"    default=" " />
+		</RECORD>
+		<RECORD id="rcvFromHost">
+			<FIELD id="HEAD_TRACE_NO"  maxLen="6"   minLen="6"  padding="0" align="RIGHT" type="CHARACTER" default="000000" />
+			<FIELD id="MSG_TYPE"       maxLen="4"   minLen="4"  padding=" " align="LEFT"  type="CHARACTER" default="0200" />
+			<FIELD id="BIT_MAP_CONFIG" maxLen="8"   minLen="8"  padding=" " align="LEFT"  type="BINARY"    default="7220000000020007" />
+			<FIELD id="ACCT_NO_LEN"    maxLen="2"   minLen="2"  padding="0" align="LEFT"  type="CHARACTER" default="16" />
+			<FIELD id="ACCT_NO"        maxLen="16"  minLen="16" padding="0" align="LEFT"  type="CHARACTER" default="0" />
+			<FIELD id="HANDLE_CODE"    maxLen="6"   minLen="6"  padding="0" align="LEFT"  type="CHARACTER" default="000000" />
+			<FIELD id="AMOUNT"         maxLen="12"  minLen="12" padding="0" align="RIGHT" type="CHARACTER" default="000000000000" />
+			<FIELD id="TX_DATE_TIME"   maxLen="10"  minLen="10" padding=" " align="LEFT"  type="CHARACTER" default=" " />
+			<FIELD id="TRACE_NO"       maxLen="6"   minLen="6"  padding="0" align="RIGHT" type="CHARACTER" default="000000" />
+			<FIELD id="RESP_CODE"      maxLen="2"   minLen="2"  padding="0" align="RIGHT" type="CHARACTER" default="00" />
+			<FIELD id="TERM_NO"        maxLen="8"   minLen="8"  padding=" " align="LEFT"  type="CHARACTER" default="2003701 " />
+			<FIELD id="CHANNEL_ID"     maxLen="15"  minLen="15" padding="0" align="LEFT"  type="CHARACTER" default="000000000000000" />
+			<FIELD id="DATA_LEN"       maxLen="3"   minLen="3"  padding="0" align="RIGHT" type="CHARACTER" default="101" />			
+			<FIELD id="STAN"           maxLen="7"   minLen="7"  padding="0" align="RIGHT" type="CHARACTER" default=" " />
+			<FIELD id="FESC_RESP_CODE" maxLen="4"   minLen="4"  padding="0" align="RIGHT" type="CHARACTER" default="0000" />			
+			<FIELD id="BUSINESS_DATE"  maxLen="6"   minLen="6"  padding=" " align="LEFT"  type="CHARACTER" default=" " />
+			<FIELD id="AVAIL_BALANCE"  maxLen="14"  minLen="14" padding="0" align="LEFT"  type="CHARACTER" default="0" />
+			<FIELD id="ACCT_BALANCE"   maxLen="14"  minLen="14" padding="0" align="LEFT"  type="CHARACTER" default="0" />
+			<FIELD id="PROMOTE_MSG"    maxLen="16"  minLen="16" padding=" " align="LEFT"  type="CHARACTER" default=" " />
+			<FIELD id="TX_FEE"         maxLen="4"   minLen="4"  padding=" " align="LEFT"  type="CHARACTER" default=" " />
+			<FIELD id="REC_FEE"        maxLen="20"  minLen="20" padding=" " align="LEFT"  type="CHARACTER" default=" " />
+			<FIELD id="IN_ACCT"        maxLen="16"  minLen="16" padding="0" align="LEFT"  type="CHARACTER" default="0000000000000000" />		
+			<FIELD id="BATCH_DATA_LEN" maxLen="3"   minLen="3"  padding="0" align="RIGHT" type="CHARACTER" default="008" />
+			<FIELD id="BATCH_NO"       maxLen="6"   minLen="6"  padding="0" align="RIGHT" type="CHARACTER" default="000000" />
+			<FIELD id="VER_NO"         maxLen="2"   minLen="2"  padding="0" align="RIGHT" type="CHARACTER" default="00" />
+		</RECORD>
+	</FORMAT>
+</TX>

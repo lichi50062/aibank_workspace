@@ -1,0 +1,155 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          biz:
+            client-id: biz
+            client-secret: bizsecret
+            authorization-grant-type: client_credentials
+            scope: biz
+            provider: biz
+        provider:
+          biz:
+            token-uri: http://localhost:9999/oauth2/token
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:9999/oauth2/jwks
+  session:
+    store-type: redis
+    redis:
+      # 不自動更改 redis config ( 預設會自動 enable keyspace notification )
+      configure-action: NONE
+      # session cleanup cron, 整個系統只需要 1～2 個 pod 有開就好，spring 2.2 之後可以設成 "-" 來 disable
+      # 需要開的 cron 請設成 expression: 0 * * * * *
+      cleanup-cron: "-"
+  data:
+    redis:
+      lettuce:
+        cluster:
+          refresh:
+            # 自動偵測 topology changes
+            adaptive: true
+      # 本機開發使用
+      host: localhost
+      port: 6379
+  cache:
+    type: redis
+    redis:
+      # duration of 1 day
+      time-to-live: P1D
+  # feign client 專用的 properties
+  cloud:
+    openfeign:
+      hystrix:
+        enabled: false
+      client:
+        config:
+          default:
+            connectTimeout: 10000
+            readTimeout: 60000
+            loggerLevel: full
+
+# 以下為管理需要之 endpoint
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  endpoint:
+    info:
+      enabled: true
+    env:
+      enabled: true
+    health:
+      enabled: true
+      show-details: ALWAYS
+      group:
+        readiness:
+          include: readinessState
+        liveness:
+          include: livenessState
+    prometheus:
+      enabled: true
+  health:
+    jms:
+      enabled: false
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - env
+          - metrics
+          - info
+          - health
+
+# 以下為 AIBANK 自訂參數
+
+aibank:
+  channel:
+    session-cleaner:
+      # 登入的微服務要設 true, 如 channel-aibank-general
+      enabled: false
+      cron: 0 * * * * *
+    use-hystrix-command: true
+    # 檢查重複 token, 本機開發不檢查
+    validate-token: false
+  common:
+    aem:
+      connection-timeout: 5000
+      read-timeout: 5000
+    api-base-uri: /api
+    cache:
+      redis:
+        host: localhost
+        port: 6379
+    feign:
+      # feign client 各服務的 url, 開發環境需要指定
+      service-aibank-system-config-url: http://localhost:8081
+#      service-aibank-notification-url: http://localhost:8082
+#      service-aibank-credit-card-url: http://localhost:8083
+#      service-aibank-mutual-fund-url: http://localhost:8084
+#      service-aibank-invest-url: http://localhost:8085
+#      service-aibank-deposit-url: http://localhost:8090
+#      service-aibank-payment-url: http://localhost:8092
+      service-aibank-user-url: http://localhost:8094
+      service-aibank-security-url: http://localhost:8095
+      service-aibank-information-url: http://localhost:8096
+#      service-aibank-loan-url: http://localhost:8087
+#      service-aibank-insurance-url: http://localhost:8088
+#      service-aibank-foreign-exchange-url: http://localhost:8091
+#      service-aibank-transfer-url: http://localhost:8097
+#      service-aibank-preferences-url: http://localhost:8098
+      service-aibank-account-url: http://localhost:8099
+      # 用以下設定可以進 SIT
+      # 在 hosts 中設定 10.11.2.40  gateway.tpebnknanot.cldatu1.groupt.fbt.com
+#      service-aibank-system-config-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-system-config
+      service-aibank-notification-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-notification
+#      #service-aibank-notification-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-notification
+      service-aibank-credit-card-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-credit-card
+      service-aibank-mutual-fund-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-mutual-fund
+      service-aibank-invest-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-invest
+      service-aibank-deposit-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-deposit
+      service-aibank-payment-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-payment
+#      service-aibank-user-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-user
+#      service-aibank-security-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-security
+#      service-aibank-information-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-information
+      service-aibank-loan-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-loan
+      service-aibank-insurance-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-insurance
+      service-aibank-foreign-exchange-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-foreign-exchange
+#      service-aibank-preferences-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-preferences
+#      service-aibank-transfer-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-transfer
+#      service-aibank-account-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-account
+
+    # oauth server url
+    oauth2:
+      access-token-uri: http://localhost:9999/oauth2/token
+      client-id: biz
+      client-secret: bizsecret
+    # pdf 匯出功能 license, 開發環境先放空的
+    pd4ml:
+      activation-key: ""

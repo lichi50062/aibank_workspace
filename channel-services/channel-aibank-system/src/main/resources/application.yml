@@ -1,0 +1,6 @@
+server:
+    port: ${SERVER_PORT:7091}
+
+spring:
+    application:
+        name: aibank-system

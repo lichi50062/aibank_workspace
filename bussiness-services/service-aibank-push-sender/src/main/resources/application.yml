@@ -1,0 +1,6 @@
+server:
+  port: ${SERVER_PORT:8105}
+
+spring:
+  application:
+    name: push-sender

@@ -1,0 +1,41 @@
+package com.tfb.aibank.chl.creditcard.ag002.model;
+
+
+import org.springframework.stereotype.Component;
+
+import com.ibm.tw.ibmb.base.model.RsData;
+
+// @formatter:off
+/**
+ *
+ * <p>Description:信用卡電子帳單設定 功能首頁</p>
+ *
+ * <p>Modify History:</p>
+ * v1.0, 2023/08/22, Aaron
+ * <ol>
+ *  <li>初版</li>
+ * </ol>
+ */
+// @formatter:off
+@Component
+public class NCCAG002011Rs implements RsData {
+	
+	private boolean hasDigiLifeCard;
+
+	/**
+	 * @return the hasDigiLifeCard
+	 */
+	public boolean isHasDigiLifeCard() {
+		return hasDigiLifeCard;
+	}
+
+	/**
+	 * @param hasDigiLifeCard the hasDigiLifeCard to set
+	 */
+	public void setHasDigiLifeCard(boolean hasDigiLifeCard) {
+		this.hasDigiLifeCard = hasDigiLifeCard;
+	}
+	
+	
+
+}

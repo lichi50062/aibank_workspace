@@ -1,0 +1,300 @@
+spring:
+  jpa:
+    show-sql: false
+    properties:
+      jakarta.persistence.sharedCache.mode: NONE
+      eclipselink.jdbc.batch-writing: JDBC
+      eclipselink.logging.logger: JavaLogger
+      eclipselink.logging.level: FINE
+  transaction:
+    default-timeout: 10
+    rollback-on-commit-failure: true
+  #  以下參數會自動在 DB 中建立 table, 建議只在本機使用
+  #      eclipselink.ddl-generation: create-or-extend-tables
+  #      eclipselink.ddl-generation.output-mode: database
+  security:
+    oauth2:
+      client:
+        registration:
+          biz:
+            client-id: biz
+            client-secret: bizsecret
+            authorization-grant-type: client_credentials
+            scope: biz
+            provider: biz
+        provider:
+          biz:
+            token-uri: http://localhost:9999/oauth2/token
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:9999/oauth2/jwks
+  cache:
+    cache-names:
+      - IdentityService
+    redis:
+      cache-null-values: false
+      time-to-live: P1D
+  # hikari datasource 還有很多設定可以調，開發環境先這樣就夠了
+  datasource:
+    pib:
+      hikari:
+        driver-class-name: oracle.jdbc.OracleDriver
+        url: jdbc:oracle:thin:@172.16.241.39:5211:TEBK
+        username: DBuserNEB
+        password: 1qaz@WSX
+        maximum-pool-size: 2
+    aibank:
+      hikari:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://10.11.4.228:6033/aibank_dev
+        username: AIBnkUser
+        password: Fubon#123
+        maximum-pool-size: 2
+    mysql:
+      hikari:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://10.11.4.228:6033/aibank_dev
+        username: AIBnkUser
+        password: Fubon#123
+        maximum-pool-size: 2
+    piblog:
+      enabled: false
+      hikari:
+        driver-class-name: oracle.jdbc.OracleDriver
+        url: jdbc:oracle:thin:@//172.16.244.249:5211/TNEBK
+        username: DBUSERBKLOGSIT
+        password: (OL>0p;/
+        maximum-pool-size: 2
+    cardevent:
+      enabled: false
+      hikari:
+        driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+        url: jdbc:sqlserver://;serverName=172.16.241.180;port=3302;databaseName=FBAPDB;encrypt=false
+        username: sa
+        password: 1qaz@WSX
+        maximum-pool-size: 2
+    peoplesoft:
+      enabled: false
+      hikari:
+        driver-class-name: oracle.jdbc.OracleDriver
+        url: jdbc:oracle:thin:@(DESCRIPTION =(ADDRESS_LIST =(ADDRESS = (PROTOCOL = TCP)(HOST = 172.17.241.217)(PORT=5211))(ADDRESS = (PROTOCOL = TCP)(HOST = 172.19.243.30)(PORT=5211))(LOAD_BALANCE = yes))(CONNECT_DATA =(SERVER = DEDICATED)(SERVICE_NAME  = TWMSC)(FAILOVER_MODE =(TYPE = SELECT)(METHOD = BASIC)(RETRIES =180)(DELAY = 5))))
+        username: PEOPSOFT
+        password: 1qaz@WSX
+        testWhileIdle: true
+        maximum-pool-size: 5
+        minimum-idle: 2
+        connection-timeout: 10000
+        idle-timeout: 60000
+        max-lifetime: 180000
+        keepalive-time: 30000
+        pool-name: CARDEVENT
+
+  # biz 不需要 session store
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  rabbitmq:
+    addresses: localhost:5772
+    address-shuffle-mode: none
+
+  # feign client 專用的 properties
+  cloud:
+    openfeign:
+      hystrix:
+        enabled: false
+      client:
+        config:
+          default:
+            connectTimeout: 10000
+            readTimeout: 60000
+            loggerLevel: basic
+
+# 以下為管理需要之 endpoint
+management:
+  endpoint:
+    info:
+      enabled: true
+    env:
+      enabled: true
+    health:
+      enabled: true
+      show-details: ALWAYS
+      group:
+        readiness:
+          include: readinessState
+        liveness:
+          include: livenessState
+    prometheus:
+      enabled: true
+  health:
+    jms:
+      enabled: false
+    readinessstate:
+      enabled: true
+    livenessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
+          - env
+          - metrics
+          - info
+          - health
+
+# 以下為 AIBANK 自訂參數
+aibank:
+  common:
+    imp-app-name: aibank_dev
+    api-base-uri: /api
+    cache:
+      duration-map:
+        IdentityService: PT5M
+      redis:
+        host: localhost
+        port: 6379
+    feign:
+      #       feign client 各服務的 url, 開發環境需要指定
+      service-aibank-system-config-url: http://localhost:8081
+#      service-aibank-notification-url: http://localhost:8082
+#      service-aibank-credit-card-url: http://localhost:8083
+#      service-aibank-mutual-fund-url: http://localhost:8084
+      service-aibank-user-url: http://localhost:8094
+      service-aibank-security-url: http://localhost:8095
+#      service-aibank-deposit-url: http://localhost:8090
+#      service-aibank-payment-url: http://localhost:8092
+#      service-aibank-information-url: http://localhost:8096
+#      service-aibank-foreign-exchange-url: http://localhost:8091
+#      service-aibank-preferences-url: http://localhost:8098
+      
+      
+      # 用以下設定可以進 SIT
+      # 在 hosts 中設定 10.11.2.40  nginx-gw.tpebnknanot.cldatu1.groupt.fbt.com
+    #      service-aibank-system-config-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-system-config
+      service-aibank-notification-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-notification
+    #      #service-aibank-notification-url: http://nginx-gw.tpebnknanot.cldatu1.groupt.fbt.com/sit2/svc-biz-notification
+      service-aibank-credit-card-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-credit-card
+      service-aibank-mutual-fund-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-mutual-fund
+    #      service-aibank-invest-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-invest
+      service-aibank-deposit-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-deposit
+      service-aibank-payment-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-payment
+#      service-aibank-user-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-user
+#      service-aibank-security-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-security
+      service-aibank-information-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-information
+      service-aibank-loan-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-loan
+      service-aibank-preferences-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-preferences
+    #      service-aibank-insurance-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-insurance
+      service-aibank-foreign-exchange-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-foreign-exchange
+    #      service-aibank-transfer-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-biz-transfer
+    #      ixtein-push-url: http://gateway.tpebnknanot.cldatu1.groupt.fbt.com/svc-ixtein-push
+    # oauth server url
+    oauth2:
+      access-token-uri: http://localhost:9999/oauth2/token
+      client-id: biz
+      client-secret: bizsecret
+  biz:
+    swagger-ui:
+      enabled: true
+  batch:
+    host: http://192.168.32.189:7007/PCMS/ExecuteJob? #批次訪問路徑
+  crypto:
+    seckey:
+      providers:
+        com.ibm.tw.commons.util.crypto.SecretKeyProviderFactory: com.ibm.tw.ibmb.component.crypto.DummySecretKeyProvider
+        #com.ibm.tw.biz.b2c.uaa.persistence.dao.impl.CompanyDAO: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+        #com.ibm.tw.biz.b2c.uaa.persistence.dao.impl.UserDAO: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+        com.tfb.aibank.component.crypto.DBSecretKeyProvider: com.tfb.aibank.component.crypto.DBSecretKeyProvider
+        com.fubon.tw.pib.persistence.b2c.entity.support.ReissueHouseLoanDataEntityListener: com.tfb.aibank.component.crypto.ReissueSecretKeyProvider
+  push:
+    resultQueue: receive.queue
+    concurrency: 10
+  notification:
+    enable-async: false
+    email:
+      queue: email.queue
+      concurrency: 10
+    sms:
+      queue: sms.queue
+      concurrency: 10
+    billhunter:
+      queue: billhunter.queue
+      concurrency: 10
+  log:
+    fields-to-hide: CARD_HOLD_ID
+# 以下為 EAI 設定
+
+eai:
+  client-system-id: AIBANK
+  channels:
+    InternetBank:
+      spName: AIBANK
+      loginId: AIBANK
+      wsId: MOBBANK
+      tellerId: 2004111
+    CBS_IB:
+      spName: AIBANK
+      loginId: AIBANK
+      wsId: MOBBANK
+      tellerId: 2004111
+    EB:
+      spName: AIBANK
+      loginId: AIBANK
+      wsId: MOBBANK
+      tellerId: 2004133
+    CBS_EB:
+      spName: AIBANK
+      loginId: AIBANK
+      wsId: MOBBANK
+      tellerId: 2004133
+    AS400:
+      spName: AIBANK
+      loginId: AIBANK
+      wsId: MOBBANK
+      tellerId: 028WEB
+    MOBILE:
+      spName: AIBANK
+      loginId: AIBANK
+      wsId: MOBBANK
+      tellerId: MOBBANK
+    eFamily:
+      spName: eFamily
+      loginId: eFamily
+      wsId: eFamily
+      tellerId: eFamily
+    ESB:
+      spName: AIBANK
+      loginId: AIBANK
+      wsId: MOBBANK
+      tellerId: MOBBANK
+    CBS:
+      spName: AIBANK
+      loginId: AIBANK
+      wsId: MOBBANK
+      tellerId: 2004112
+  postURL: http://172.19.241.10:9201
+  #postURL: http://eai-simulator.tpebnknanot.cldatu1.groupt.fbt.com/HttpPost.ashx
+  #postURL: http://localhost:10080/HttpPost.ashx
+  max-conversation-times: 1000
+  check-integrity: false
+  connection-timeout: 30000
+  socket-timeout: 120000
+springdoc:
+  paths-to-exclude: /base/version,/echo/*
+  swagger-ui:
+    enabled: ${aibank.biz.swagger-ui.enabled}
+    operationsSorter: alpha
+jdbc:
+  datasource-proxy:
+    query:
+      enable-logging: true
+      logging: sl4j
+      log-level: INFO
+      logger-name: PERFORMACE_LOGGER
+    multiline: false
+    include-parameter-values: false
+    slow-query:
+      enable-logging: true
+      logger-name: PERFORMACE_LOGGER
+      threshold: 500

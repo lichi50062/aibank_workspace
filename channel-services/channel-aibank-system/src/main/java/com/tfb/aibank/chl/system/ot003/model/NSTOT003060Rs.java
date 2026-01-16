@@ -1,0 +1,23 @@
+package com.tfb.aibank.chl.system.ot003.model;
+
+import org.springframework.stereotype.Component;
+
+import com.ibm.tw.ibmb.base.model.RsData;
+
+//@formatter:off
+/**
+* @(#)NSTOT003053Rq.java
+* 
+* <p>Description:安控驗證共用 - 檢核是否可進行安控 - RS</p>
+* 
+* <p>Modify History:</p>
+* v1.0, 2024/07/05, John Chang
+* <ol>
+*  <li>初版</li>
+* </ol>
+*/
+//@formatter:on
+@Component
+public class NSTOT003060Rs implements RsData {
+
+}

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+
+	<appender name="STDOUT"
+		class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern><![CDATA[%date{HH:mm:ss.SSS} [T:%X{traceId:-} S:%X{spanId:-}] %X{trackingid} [%thread] %-5level %logger{15} %X{req.requestURI} %msg\n]]></pattern>
+		</encoder>
+	</appender>
+
+	<logger name="ServiceProcessor" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="ServiceDetail" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="API_LOGGER" level="DEBUG" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="org.apache.http" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="org.springframework" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.ibm.tw" level="DEBUG" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="com.ctbc.esb" level="DEBUG" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="springfox" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="io.lettuce" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="io.netty" level="INFO" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="PERFORMANCE_LOGGER" level="DEBUG" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger
+		name="org.springframework.jdbc.core.StatementCreatorUtils"
+		level="TRACE" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+	<logger name="org.springframework.jdbc.core.JdbcTemplate"
+		level="TRACE" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<root>
+		<level value="DEBUG" />
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>

@@ -1,0 +1,52 @@
+/*
+ * ===========================================================================
+ * 
+ * IBM Confidential
+ * 
+ * AIS Source Materials
+ * 
+ * (C) Copyright IBM Corp. 2013.
+ * 
+ * ===========================================================================
+ */
+package com.tfb.aibank.integration.eai.msg;
+
+import com.tfb.aibank.integration.eai.EAIResponse;
+import com.tfb.aibank.integration.eai.annotation.Converter;
+import com.tfb.aibank.integration.eai.annotation.CustomConverter;
+import com.tfb.aibank.integration.eai.annotation.DecimalConverter;
+import com.tfb.aibank.integration.eai.converter.EAIDecimalConverter;
+import com.tfb.aibank.integration.eai.converter.EAITrimConverter;
+
+import tw.com.ibm.mf.eb.UK084NSvcRqType;
+import tw.com.ibm.mf.eb.UK084NSvcRsType;
+
+// @formatter:off
+/**
+ * @(#)UK084NRS.java
+ * 
+ * <p>Description:UK084N 股票資產總覽</p>
+ * 
+ * <p>Modify History:</p>
+ * v1.0, 2023/05/28, Edward Tien	
+ * <ol>
+ *  <li>初版</li>
+ * </ol>
+ */
+@Converter(
+        customConverters = {
+                        @CustomConverter(converter = EAITrimConverter.class, fieldXPath = "eai:Tx/TxHead/* | eai:Tx/TxBody/TxRepeat/* ")
+        },
+        decimalConverters = {
+                @DecimalConverter(converter = EAIDecimalConverter.class, scale=0, isPostSign=true, fieldXPath = "eai:Tx/TxBody/TxRepeat/Amount "),
+    })
+// @formatter:on
+public class UK084NRS extends EAIResponse<UK084NSvcRqType, UK084NSvcRsType> {
+
+    /**
+     * 建構子
+     */
+    public UK084NRS() {
+        super("UK084N");
+    }
+}

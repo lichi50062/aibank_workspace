@@ -1,0 +1,12 @@
+server:
+  port: ${SERVER_PORT:8763}
+  
+info:
+  component: Gateway Server
+
+spring:
+  application:
+    name: gateway-server
+  codec:
+    max-in-memory-size: 50MB
+
